@@ -1,6 +1,31 @@
-import { segmentTool, lineTool, rayTool, vectorTool } from './lineHandlers';
+import {
+  segmentTool,
+  lineTool,
+  rayTool,
+  vectorTool,
+  segmentGivenLengthTool,
+  vectorFromPointTool,
+  polarDiameterLineTool,
+  polylineTool,
+} from './lineHandlers';
 import { circleCenterPointTool, compassTool, semicircleTool } from './circleHandlers';
-import { midpointTool, perpendicularTool, parallelTool } from './constructHandlers';
+import {
+  midpointTool,
+  perpendicularTool,
+  parallelTool,
+  perpendicularBisectorTool,
+  angleBisectorTool,
+  tangentsTool,
+  locusTool,
+} from './constructHandlers';
+import {
+  reflectLineTool,
+  reflectPointTool,
+  translateVectorTool,
+  rotateAroundPointTool,
+  dilateFromPointTool,
+  reflectAboutCircleTool,
+} from './transformHandlers';
 import {
   deleteTool,
   showHideObjectTool,
@@ -17,7 +42,13 @@ import {
   bestFitLineTool,
   sliderTool,
 } from './basicHandlers';
-import { angleTool, distanceTool, areaTool } from './measureHandlers';
+import {
+  angleTool,
+  angleGivenSizeTool,
+  slopeTool,
+  distanceTool,
+  areaTool,
+} from './measureHandlers';
 import { textTool, imageTool } from './mediaHandlers';
 
 export const allTools = [
@@ -37,13 +68,29 @@ export const allTools = [
   lineTool,
   rayTool,
   vectorTool,
+  segmentGivenLengthTool,
+  vectorFromPointTool,
+  polarDiameterLineTool,
+  polylineTool,
   circleCenterPointTool,
   compassTool,
   semicircleTool,
   midpointTool,
   perpendicularTool,
+  perpendicularBisectorTool,
   parallelTool,
+  angleBisectorTool,
+  tangentsTool,
+  locusTool,
+  reflectLineTool,
+  reflectPointTool,
+  translateVectorTool,
+  rotateAroundPointTool,
+  dilateFromPointTool,
+  reflectAboutCircleTool,
   angleTool,
+  angleGivenSizeTool,
+  slopeTool,
   distanceTool,
   areaTool,
   textTool,

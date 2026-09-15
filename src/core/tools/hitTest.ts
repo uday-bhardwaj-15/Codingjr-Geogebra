@@ -1,7 +1,6 @@
 import { GeoObject, Viewport } from '../../types/geo';
-import { PointCoords, PointValue, resolvePoint } from '../geometry/Point';
-import { screenToWorld, worldToScreen } from '../../lib/coords/coordTransform';
-import { ConstructionManager } from '../construction/ConstructionManager';
+import { PointCoords, resolvePoint } from '../geometry/Point';
+import { worldToScreen } from '../../lib/coords/coordTransform';
 
 export interface HitResult {
   object: GeoObject;
@@ -46,7 +45,6 @@ export function hitTest(
         const thumbX = screenPt.x + fraction * sliderWidth;
         const thumbY = screenPt.y;
 
-        // Check thumb hit first
         const thumbDx = thumbX - clickScreen.x;
         const thumbDy = thumbY - clickScreen.y;
         const thumbDistSq = thumbDx * thumbDx + thumbDy * thumbDy;
@@ -60,9 +58,42 @@ export function hitTest(
           clickScreen.y >= screenPt.y - 20 &&
           clickScreen.y <= screenPt.y + 16
         ) {
-          // Track or label hit
-          distSq = 25; // prioritize thumb over track if close
+          distSq = 25;
           hitPart = 'track';
+        }
+      }
+    } else if (obj.type === 'text') {
+      const val = obj.value as any;
+      if (val && typeof val.x === 'number') {
+        const screenPt = worldToScreen(val.x, val.y, canvasWidth, canvasHeight, viewport);
+        const textLen = (val.text || 'Text').length;
+        const boxWidth = Math.max(40, textLen * 9);
+        const boxHeight = 22;
+
+        if (
+          clickScreen.x >= screenPt.x - 6 &&
+          clickScreen.x <= screenPt.x + boxWidth + 6 &&
+          clickScreen.y >= screenPt.y - boxHeight - 4 &&
+          clickScreen.y <= screenPt.y + 6
+        ) {
+          distSq = 0; // High priority hit
+        }
+      }
+    } else if (obj.type === 'image') {
+      const val = obj.value as any;
+      if (val && typeof val.x === 'number') {
+        const screenPt = worldToScreen(val.x, val.y, canvasWidth, canvasHeight, viewport);
+        const pixelScale = canvasWidth / (viewport.xMax - viewport.xMin);
+        const imgW = (val.width || 4) * pixelScale;
+        const imgH = (val.height || 3) * pixelScale;
+
+        if (
+          clickScreen.x >= screenPt.x - 4 &&
+          clickScreen.x <= screenPt.x + imgW + 4 &&
+          clickScreen.y >= screenPt.y - imgH - 4 &&
+          clickScreen.y <= screenPt.y + 4
+        ) {
+          distSq = 1;
         }
       }
     } else if (obj.type === 'segment' || obj.type === 'line' || obj.type === 'ray' || obj.type === 'vector') {
@@ -70,7 +101,6 @@ export function hitTest(
       if (lineVal && lineVal.p1 && lineVal.p2) {
         const s1 = worldToScreen(lineVal.p1.x, lineVal.p1.y, canvasWidth, canvasHeight, viewport);
         const s2 = worldToScreen(lineVal.p2.x, lineVal.p2.y, canvasWidth, canvasHeight, viewport);
-        // Distance from point to segment
         const l2 = (s2.x - s1.x) ** 2 + (s2.y - s1.y) ** 2;
         if (l2 === 0) {
           distSq = (clickScreen.x - s1.x) ** 2 + (clickScreen.y - s1.y) ** 2;
@@ -86,7 +116,6 @@ export function hitTest(
           distSq = (clickScreen.x - projX) ** 2 + (clickScreen.y - projY) ** 2;
         }
       } else if (lineVal && typeof lineVal.a === 'number' && typeof lineVal.b === 'number') {
-        // Line equation a*x + b*y + c = 0 in world coords
         const { a, b, c } = lineVal;
         const norm = Math.sqrt(a * a + b * b);
         if (norm > 0) {

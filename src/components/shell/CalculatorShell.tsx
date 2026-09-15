@@ -10,9 +10,13 @@ import { AlgebraView } from '../algebra-view/AlgebraView';
 import { TableView } from '../table-view/TableView';
 import { SpreadsheetView } from '../spreadsheet-view/SpreadsheetView';
 import { SliderModal } from '../ui/SliderModal';
+import { AlertModal } from '../ui/AlertModal';
+import { ValueInputModal } from '../ui/ValueInputModal';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
 export const CalculatorShell: React.FC = () => {
   const { toolsPanelOpen, activeLeftTab } = useUIStore();
+  useKeyboardShortcuts();
 
   return (
     <div className="flex flex-col w-screen h-screen overflow-hidden">
@@ -38,6 +42,8 @@ export const CalculatorShell: React.FC = () => {
         
         {/* Modals */}
         <SliderModal />
+        <AlertModal />
+        <ValueInputModal />
       </div>
     </div>
   );

@@ -6,7 +6,11 @@ export type ToolCategory =
   | 'transform'
   | 'construct'
   | 'lines'
-  | 'circles';
+  | 'circles'
+  | 'points'
+  | 'polygons'
+  | 'conics'
+  | 'others';
 
 export interface ToolDefinition {
   id: string;
@@ -14,6 +18,8 @@ export interface ToolDefinition {
   label: string;
   description: string;
   category: ToolCategory;
-  icon: string; // We'll use lucide-react icon names or custom mapping
+  icon: string;
   clicksRequired: number;
+  enabled?: boolean;
+  isExpandedOnly?: boolean;
 }

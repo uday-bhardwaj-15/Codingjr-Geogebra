@@ -14,19 +14,27 @@ export function renderLivePreview(
   if (!currentMouseWorld || pendingSelections.length === 0) return;
 
   ctx.save();
-  ctx.strokeStyle = 'rgba(21, 101, 239, 0.5)'; // gk-point-blue with opacity
-  ctx.fillStyle = 'rgba(21, 101, 239, 0.2)';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(21, 101, 239, 0.6)';
+  ctx.fillStyle = 'rgba(21, 101, 239, 0.15)';
+  ctx.lineWidth = 1.5;
   ctx.setLineDash([5, 5]);
 
   const mouseScreen = worldToScreen(currentMouseWorld.x, currentMouseWorld.y, canvasWidth, canvasHeight, viewport);
 
-  if (toolId === 'segment' || toolId === 'line' || toolId === 'ray' || toolId === 'vector') {
+  if (
+    toolId === 'segment' ||
+    toolId === 'line' ||
+    toolId === 'ray' ||
+    toolId === 'vector' ||
+    toolId === 'perpendicular-bisector' ||
+    toolId === 'midpoint-center' ||
+    toolId === 'distance-length'
+  ) {
     if (pendingSelections.length === 1 && pendingSelections[0].type === 'point') {
       const p1 = pendingSelections[0].value as PointValue;
       const resolvedP1 = resolvePoint(p1);
       const screenP1 = worldToScreen(resolvedP1.x, resolvedP1.y, canvasWidth, canvasHeight, viewport);
-      
+
       ctx.beginPath();
       ctx.moveTo(screenP1.x, screenP1.y);
       ctx.lineTo(mouseScreen.x, mouseScreen.y);
@@ -37,7 +45,7 @@ export function renderLivePreview(
       const p1 = pendingSelections[0].value as PointValue;
       const resolvedP1 = resolvePoint(p1);
       const screenP1 = worldToScreen(resolvedP1.x, resolvedP1.y, canvasWidth, canvasHeight, viewport);
-      
+
       const dx = mouseScreen.x - screenP1.x;
       const dy = mouseScreen.y - screenP1.y;
       const rScreen = Math.sqrt(dx * dx + dy * dy);

@@ -6,6 +6,7 @@ import { bestFitLine } from '../../geometry/Line';
 import { resolvePoint } from '../../geometry/Point';
 import { intersectLineLine, intersectLineCircle, intersectCircleCircle } from '../../geometry/intersections';
 import { useViewStore } from '../../../store/useViewStore';
+import { UpdateObjectCommand } from '../../construction/commands/commands';
 
 export const pointTool: ToolHandler = {
   id: 'point',
@@ -14,8 +15,6 @@ export const pointTool: ToolHandler = {
   clicksRequired: 1,
   createsPoints: true,
   commit: (selections: GeoObject[], cm: ConstructionManager) => {
-    // If it was created from empty canvas, ToolManager created a free point.
-    // If user clicked existing object or we want to ensure proper label:
     if (selections.length > 0) {
       const target = selections[0];
       if (target.label === 'P') {
@@ -49,8 +48,9 @@ interface DragState {
   target: (GeoObject & { hitPart?: 'thumb' | 'track' }) | null;
   startWorldPos: { x: number; y: number };
   lastWorldPos: { x: number; y: number };
-  sliderInitialVal?: number;
+  initialValue?: any;
   sliderPosOffset?: { x: number; y: number };
+  dragOffset?: { x: number; y: number };
   isPanning?: boolean;
 }
 
@@ -63,22 +63,26 @@ export const moveTool: ToolHandler = {
   clicksRequired: 0,
   onPointerDown: (pos, target) => {
     if (target) {
+      const val = target.value as any;
       activeDrag = {
         target,
         startWorldPos: { ...pos },
         lastWorldPos: { ...pos },
+        initialValue: val ? JSON.parse(JSON.stringify(val)) : null,
       };
 
       if (target.type === 'slider') {
-        const val = target.value as any;
-        activeDrag.sliderInitialVal = val?.val ?? 0;
         activeDrag.sliderPosOffset = {
+          x: pos.x - (val?.x ?? 0),
+          y: pos.y - (val?.y ?? 0),
+        };
+      } else if (target.type === 'text' || target.type === 'image') {
+        activeDrag.dragOffset = {
           x: pos.x - (val?.x ?? 0),
           y: pos.y - (val?.y ?? 0),
         };
       }
     } else {
-      // Pan graphics view
       activeDrag = {
         target: null,
         startWorldPos: { ...pos },
@@ -94,7 +98,6 @@ export const moveTool: ToolHandler = {
       const dx = pos.x - activeDrag.lastWorldPos.x;
       const dy = pos.y - activeDrag.lastWorldPos.y;
       useViewStore.getState().pan(dx, dy);
-      // After panning, update lastWorldPos to current pos to prevent runaway deltas
       activeDrag.lastWorldPos = { ...pos };
       return;
     }
@@ -103,17 +106,27 @@ export const moveTool: ToolHandler = {
     const { target } = activeDrag;
 
     if (target.type === 'point') {
-      cm.updateObject(target.id, {
+      cm.rawUpdateObject(target.id, {
         value: { kind: 'free', x: pos.x, y: pos.y },
+      });
+    } else if (target.type === 'text' || target.type === 'image') {
+      const val = target.value as any;
+      if (!val) return;
+      const offset = activeDrag.dragOffset || { x: 0, y: 0 };
+      cm.rawUpdateObject(target.id, {
+        value: {
+          ...val,
+          x: pos.x - offset.x,
+          y: pos.y - offset.y,
+        },
       });
     } else if (target.type === 'slider') {
       const sliderVal = target.value as any;
       if (!sliderVal) return;
 
       if (target.hitPart === 'track') {
-        // Move the slider widget position
         const offset = activeDrag.sliderPosOffset || { x: 0, y: 0 };
-        cm.updateObject(target.id, {
+        cm.rawUpdateObject(target.id, {
           value: {
             ...sliderVal,
             x: pos.x - offset.x,
@@ -121,13 +134,8 @@ export const moveTool: ToolHandler = {
           },
         });
       } else {
-        // Drag the thumb (adjust val)
-        // Convert world dx relative to slider start position to track fraction
         const viewport = useViewStore.getState().viewport;
         const worldWidth = viewport.xMax - viewport.xMin;
-        // In CanvasSurface, slider width is 140px on screen.
-        // Let's approximate track length in world coordinates:
-        // trackWorldLength = 140 * (worldWidth / canvasWidth) ~ worldWidth * (140 / 800)
         const trackWorldLength = worldWidth * 0.18 || 3.5;
         const sliderOriginX = sliderVal.x ?? 0;
         const relativeX = pos.x - sliderOriginX;
@@ -138,19 +146,30 @@ export const moveTool: ToolHandler = {
         const step = sliderVal.step ?? 0.1;
         let newVal = min + fraction * (max - min);
 
-        // Snap to step
         if (step > 0) {
           newVal = Math.round((newVal - min) / step) * step + min;
         }
         newVal = Math.max(min, Math.min(max, newVal));
 
-        cm.updateObject(target.id, {
+        cm.rawUpdateObject(target.id, {
           value: { ...sliderVal, val: newVal },
         });
       }
     }
   },
-  onPointerUp: () => {
+  onPointerUp: (_pos, _target, cm) => {
+    if (activeDrag && activeDrag.target && cm && activeDrag.initialValue) {
+      const currentObj = cm.getObject(activeDrag.target.id);
+      if (currentObj && JSON.stringify(currentObj.value) !== JSON.stringify(activeDrag.initialValue)) {
+        cm.executeCommand(
+          new UpdateObjectCommand(
+            activeDrag.target.id,
+            { value: currentObj.value },
+            { value: activeDrag.initialValue }
+          )
+        );
+      }
+    }
     activeDrag = null;
   },
   reset: () => {
@@ -184,9 +203,10 @@ export const bestFitLineTool: ToolHandler = {
       const lineVal = bestFitLine(points);
       const label = getNextLineLabel(cm.getObjects());
       const sign = (lineVal.intercept ?? 0) >= 0 ? '+' : '-';
-      const def = lineVal.slope !== undefined && lineVal.intercept !== undefined
-        ? `y = ${lineVal.slope.toFixed(2)}x ${sign} ${Math.abs(lineVal.intercept).toFixed(2)}`
-        : `x = ${points[0].x.toFixed(2)}`;
+      const def =
+        lineVal.slope !== undefined && lineVal.intercept !== undefined
+          ? `y = ${lineVal.slope.toFixed(2)}x ${sign} ${Math.abs(lineVal.intercept).toFixed(2)}`
+          : `x = ${points[0].x.toFixed(2)}`;
 
       cm.addObject({
         id: `line_${Date.now()}`,
@@ -236,7 +256,7 @@ export const intersectTool: ToolHandler = {
         type: 'point',
         definition: '',
         dependsOn: [obj1.id, obj2.id],
-        value: { kind: 'free', x: ptCoords.x, y: ptCoords.y },
+        value: { kind: 'dependent', x: ptCoords.x, y: ptCoords.y },
         visible: true,
         labelVisible: true,
         style: { color: '#7c3aed', thickness: 5, opacity: 1 },
@@ -263,7 +283,7 @@ export const extremumTool: ToolHandler = {
       type: 'point',
       definition: '',
       dependsOn: [target.id],
-      value: { kind: 'free', x: pt.x, y: pt.y },
+      value: { kind: 'dependent', x: pt.x, y: pt.y },
       visible: true,
       labelVisible: true,
       style: { color: '#059669', thickness: 5, opacity: 1 },
@@ -289,7 +309,7 @@ export const rootsTool: ToolHandler = {
       type: 'point',
       definition: '',
       dependsOn: [target.id],
-      value: { kind: 'free', x: pt.x, y: 0 },
+      value: { kind: 'dependent', x: pt.x, y: 0 },
       visible: true,
       labelVisible: true,
       style: { color: '#d97706', thickness: 5, opacity: 1 },

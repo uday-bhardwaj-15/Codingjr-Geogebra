@@ -1,4 +1,19 @@
-export type GeoObjectType = 'point' | 'line' | 'segment' | 'ray' | 'vector' | 'circle' | 'polygon' | 'angle' | 'function' | 'text' | 'image' | 'measurement' | 'slider';
+export type GeoObjectType =
+  | 'point'
+  | 'line'
+  | 'segment'
+  | 'ray'
+  | 'vector'
+  | 'circle'
+  | 'polygon'
+  | 'polyline'
+  | 'locus'
+  | 'angle'
+  | 'function'
+  | 'text'
+  | 'image'
+  | 'measurement'
+  | 'slider';
 
 export interface ObjectStyle {
   color: string;
