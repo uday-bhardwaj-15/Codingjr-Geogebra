@@ -21,6 +21,17 @@ function parsePointInput(input: string): { x: number; y: number } | null {
   return null;
 }
 
+export const FormattedLabel: React.FC<{ label: string }> = ({ label }) => {
+  const parts = label.split('_');
+  if (parts.length <= 1) return <span>{label}</span>;
+  return (
+    <span>
+      {parts[0]}
+      <sub className="text-[0.75em] leading-none">{parts.slice(1).join('_')}</sub>
+    </span>
+  );
+};
+
 const ItemContent: React.FC<{ obj: GeoObject }> = ({ obj }) => {
   const { updateObject } = useConstructionStore();
   const [isEditing, setIsEditing] = useState(false);
@@ -154,14 +165,20 @@ const ItemContent: React.FC<{ obj: GeoObject }> = ({ obj }) => {
   // Render Display Mode
   if (obj.type === 'point') {
     const pt = resolvePoint(obj.value as PointValue);
+    const isComplex = (obj.value as any)?.isComplex;
+    const sign = pt.y >= 0 ? '+' : '-';
+    const coordsText = isComplex
+      ? `${Number(pt.x.toFixed(2))} ${sign} ${Number(Math.abs(pt.y).toFixed(2))}i`
+      : `(${Number(pt.x.toFixed(2))}, ${Number(pt.y.toFixed(2))})`;
+
     return (
       <div
         className={clsx('flex flex-col', isEditable && 'cursor-pointer hover:text-[var(--gk-accent)]')}
         onClick={startEditing}
         title={isEditable ? 'Click to edit coordinates' : undefined}
       >
-        <div className="text-sm text-[var(--gk-text)] font-semibold select-none">
-          {obj.label} = ({Number(pt.x.toFixed(2))}, {Number(pt.y.toFixed(2))})
+        <div className="text-sm text-[var(--gk-text)] font-semibold select-none flex items-baseline gap-1">
+          <FormattedLabel label={obj.label} /> = {coordsText}
         </div>
         {obj.dependsOn.length > 0 && (
           <div className="text-xs text-[var(--gk-text-muted)] mt-0.5">
@@ -184,11 +201,11 @@ const ItemContent: React.FC<{ obj: GeoObject }> = ({ obj }) => {
     return (
       <div className="flex flex-col w-full pr-2">
         <div
-          className="text-sm text-[var(--gk-text)] font-semibold cursor-pointer hover:text-[var(--gk-accent)] select-none"
+          className="text-sm text-[var(--gk-text)] font-semibold cursor-pointer hover:text-[var(--gk-accent)] select-none flex items-baseline gap-1"
           onClick={startEditing}
           title="Click to edit value"
         >
-          {obj.label} = {Number(currentVal).toFixed(1)}
+          <FormattedLabel label={obj.label} /> = {Number(currentVal).toFixed(1)}
         </div>
         <input
           type="range"
@@ -218,10 +235,14 @@ const ItemContent: React.FC<{ obj: GeoObject }> = ({ obj }) => {
     obj.type === 'segment' ||
     obj.type === 'line' ||
     obj.type === 'circle' ||
+    obj.type === 'conic' ||
     obj.type === 'ray' ||
-    obj.type === 'vector'
+    obj.type === 'vector' ||
+    obj.type === 'polygon'
   ) {
-    if (obj.dependsOn.length > 0) {
+    if (obj.type === 'polygon' && (obj.value as any)?.area !== undefined) {
+      detail = `Area = ${(obj.value as any).area.toFixed(2)}`;
+    } else if (obj.dependsOn.length > 0) {
       detail = `Depends on: ${obj.dependsOn
         .map((id) => id.split('_')[0].toUpperCase())
         .join(', ')}`;
@@ -234,8 +255,8 @@ const ItemContent: React.FC<{ obj: GeoObject }> = ({ obj }) => {
       onClick={startEditing}
       title={isEditable ? 'Click to edit definition' : undefined}
     >
-      <div className="text-sm font-semibold text-[var(--gk-text)] truncate select-none">
-        {typeLabel} {obj.label}
+      <div className="text-sm font-semibold text-[var(--gk-text)] truncate select-none flex items-baseline gap-1">
+        <span>{typeLabel}</span> <FormattedLabel label={obj.label} />
       </div>
       {(obj.definition || detail) && (
         <div className="text-xs text-[var(--gk-text-muted)] mt-1 truncate select-none">

@@ -33,8 +33,7 @@ export const AlertModal: React.FC = () => {
           <button
             onClick={handleOk}
             autoFocus
-            className="px-6 py-2 text-white text-sm font-medium rounded-full shadow hover:brightness-95 transition-all cursor-pointer"
-            style={{ backgroundColor: 'var(--gk-accent)' }}
+            className="px-6 py-2 bg-black text-white text-sm font-semibold rounded-full shadow-sm hover:bg-gray-800 transition-all cursor-pointer"
           >
             OK
           </button>

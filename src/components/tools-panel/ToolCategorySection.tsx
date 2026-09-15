@@ -18,11 +18,11 @@ export const ToolCategorySection: React.FC<ToolCategorySectionProps> = ({
   if (tools.length === 0) return null;
   
   return (
-    <div className="mb-6">
-      <h3 className="text-xs font-semibold text-[var(--gk-text-muted)] uppercase tracking-wider mb-3 px-1">
+    <div className="mb-5">
+      <h3 className="text-[13px] font-semibold text-[#202124] mb-2 px-1 tracking-tight">
         {label}
       </h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-x-1 gap-y-2">
         {tools.map((tool) => (
           <ToolTile
             key={tool.id}
@@ -35,3 +35,5 @@ export const ToolCategorySection: React.FC<ToolCategorySectionProps> = ({
     </div>
   );
 };
+
+

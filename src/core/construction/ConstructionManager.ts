@@ -21,7 +21,24 @@ import {
   bestFitLine,
   LineValue,
 } from '../geometry/Line';
-import { circleFromCenterAndPoint } from '../geometry/Circle';
+import {
+  circleFromCenterAndPoint,
+  circleFromCenterAndRadius,
+  circleFromThreePoints,
+  semicircleFromDiameter,
+  circularArcFromCenter,
+  circumcircularArc,
+} from '../geometry/Circle';
+import {
+  regularPolygonVertices,
+  polygonArea,
+} from '../geometry/polygons';
+import {
+  ellipseFromFociAndPoint,
+  hyperbolaFromFociAndPoint,
+  parabolaFromFocusAndDirectrix,
+  conicFromFivePoints,
+} from '../geometry/conics';
 import { tangentsToCircle } from '../geometry/tangents';
 import {
   reflectPointAboutLine,
@@ -480,6 +497,160 @@ export class ConstructionManager {
           if (ptCoords) {
             obj.value = { kind: 'dependent', x: ptCoords.x, y: ptCoords.y };
           }
+        }
+        break;
+      }
+
+      case 'semicircle': {
+        if (depObjs.length >= 2 && depObjs[0].value && depObjs[1].value) {
+          const p1 = resolvePoint(depObjs[0].value as any);
+          const p2 = resolvePoint(depObjs[1].value as any);
+          obj.value = semicircleFromDiameter(p1, p2);
+        }
+        break;
+      }
+
+      case 'circle-center-radius': {
+        if (depObjs.length >= 1 && depObjs[0].value) {
+          const center = resolvePoint(depObjs[0].value as any);
+          const radius = (obj.value as any)?.radius ?? 3;
+          obj.value = circleFromCenterAndRadius(center, radius);
+        }
+        break;
+      }
+
+      case 'circle-three-points': {
+        if (depObjs.length >= 3 && depObjs[0].value && depObjs[1].value && depObjs[2].value) {
+          const p1 = resolvePoint(depObjs[0].value as any);
+          const p2 = resolvePoint(depObjs[1].value as any);
+          const p3 = resolvePoint(depObjs[2].value as any);
+          const c = circleFromThreePoints(p1, p2, p3);
+          if (c) obj.value = c;
+        }
+        break;
+      }
+
+      case 'circular-arc': {
+        if (depObjs.length >= 3 && depObjs[0].value && depObjs[1].value && depObjs[2].value) {
+          const center = resolvePoint(depObjs[0].value as any);
+          const p1 = resolvePoint(depObjs[1].value as any);
+          const p2 = resolvePoint(depObjs[2].value as any);
+          obj.value = circularArcFromCenter(center, p1, p2, false);
+        }
+        break;
+      }
+
+      case 'circumcircular-arc': {
+        if (depObjs.length >= 3 && depObjs[0].value && depObjs[1].value && depObjs[2].value) {
+          const p1 = resolvePoint(depObjs[0].value as any);
+          const p2 = resolvePoint(depObjs[1].value as any);
+          const p3 = resolvePoint(depObjs[2].value as any);
+          const c = circumcircularArc(p1, p2, p3, false);
+          if (c) obj.value = c;
+        }
+        break;
+      }
+
+      case 'circular-sector': {
+        if (depObjs.length >= 3 && depObjs[0].value && depObjs[1].value && depObjs[2].value) {
+          const center = resolvePoint(depObjs[0].value as any);
+          const p1 = resolvePoint(depObjs[1].value as any);
+          const p2 = resolvePoint(depObjs[2].value as any);
+          obj.value = circularArcFromCenter(center, p1, p2, true);
+        }
+        break;
+      }
+
+      case 'circumcircular-sector': {
+        if (depObjs.length >= 3 && depObjs[0].value && depObjs[1].value && depObjs[2].value) {
+          const p1 = resolvePoint(depObjs[0].value as any);
+          const p2 = resolvePoint(depObjs[1].value as any);
+          const p3 = resolvePoint(depObjs[2].value as any);
+          const c = circumcircularArc(p1, p2, p3, true);
+          if (c) obj.value = c;
+        }
+        break;
+      }
+
+      case 'compass': {
+        if (depObjs.length >= 3 && depObjs[0].value && depObjs[1].value && depObjs[2].value) {
+          const p1 = resolvePoint(depObjs[0].value as any);
+          const p2 = resolvePoint(depObjs[1].value as any);
+          const center = resolvePoint(depObjs[2].value as any);
+          const r = distanceBetweenPoints(p1, p2);
+          obj.value = circleFromCenterAndRadius(center, r);
+        }
+        break;
+      }
+
+      case 'polygon':
+      case 'vector-polygon':
+      case 'rigid-polygon': {
+        const pts = depObjs.filter((d) => d.type === 'point' && d.value).map((d) => resolvePoint(d.value as any));
+        if (pts.length >= 3) {
+          const area = polygonArea(pts);
+          const prevVal = (obj.value as any) || {};
+          obj.value = {
+            ...prevVal,
+            vertices: pts,
+            area,
+          };
+        }
+        break;
+      }
+
+      case 'regular-polygon': {
+        if (depObjs.length >= 2 && depObjs[0].value && depObjs[1].value) {
+          const p1 = resolvePoint(depObjs[0].value as any);
+          const p2 = resolvePoint(depObjs[1].value as any);
+          const n = (obj.value as any)?.n || 4;
+          const pts = regularPolygonVertices(p1, p2, n);
+          const area = polygonArea(pts);
+          obj.value = {
+            vertices: pts,
+            edgeStyle: 'segment',
+            area,
+            n,
+          };
+        }
+        break;
+      }
+
+      case 'ellipse': {
+        if (depObjs.length >= 3 && depObjs[0].value && depObjs[1].value && depObjs[2].value) {
+          const f1 = resolvePoint(depObjs[0].value as any);
+          const f2 = resolvePoint(depObjs[1].value as any);
+          const p = resolvePoint(depObjs[2].value as any);
+          obj.value = ellipseFromFociAndPoint(f1, f2, p);
+        }
+        break;
+      }
+
+      case 'hyperbola': {
+        if (depObjs.length >= 3 && depObjs[0].value && depObjs[1].value && depObjs[2].value) {
+          const f1 = resolvePoint(depObjs[0].value as any);
+          const f2 = resolvePoint(depObjs[1].value as any);
+          const p = resolvePoint(depObjs[2].value as any);
+          obj.value = hyperbolaFromFociAndPoint(f1, f2, p);
+        }
+        break;
+      }
+
+      case 'parabola': {
+        const ptObj = depObjs.find((d) => d.type === 'point');
+        const lineObj = depObjs.find((d) => d.type === 'line' || d.type === 'segment');
+        if (ptObj?.value && lineObj?.value) {
+          const focus = resolvePoint(ptObj.value as any);
+          const lineVal = lineObj.value as LineValue;
+          obj.value = parabolaFromFocusAndDirectrix(focus, lineVal);
+        }
+        break;
+      }
+
+      case 'conic-five-points': {
+        const pts = depObjs.filter((d) => d.type === 'point' && d.value).map((d) => resolvePoint(d.value as any));
+        if (pts.length >= 5) {
+          obj.value = conicFromFivePoints(pts);
         }
         break;
       }

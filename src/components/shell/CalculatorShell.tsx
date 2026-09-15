@@ -4,6 +4,8 @@ import React from 'react';
 import { TopNavBar } from './TopNavBar';
 import { LeftIconRail } from './LeftIconRail';
 import { useUIStore } from '../../store/useUIStore';
+import { useToolStore } from '../../store/useToolStore';
+import { TOOLS } from '../tools-panel/toolsConfig';
 import { ToolsPanel } from '../tools-panel/ToolsPanel';
 import { GraphicsView } from '../graphics-view/GraphicsView';
 import { AlgebraView } from '../algebra-view/AlgebraView';
@@ -19,52 +21,59 @@ export const CalculatorShell: React.FC = () => {
   useKeyboardShortcuts();
 
   return (
-    <div className="flex flex-col w-screen h-screen overflow-hidden">
+    <div className="flex flex-col w-screen h-screen overflow-hidden bg-white select-none">
       <TopNavBar />
+
       <div className="flex flex-1 overflow-hidden relative">
         <LeftIconRail />
-        
-        {/* Flyout Panel */}
+
+        {/* Flyout Sidebar Panel */}
         {toolsPanelOpen && (
-          <div className="flex-shrink-0 h-full overflow-y-auto border-r border-[var(--gk-border)]">
+          <div className="flex-shrink-0 h-full overflow-hidden bg-white border-r border-[#e0e0e0]">
             {activeLeftTab === 'tools' && <ToolsPanel />}
-            {activeLeftTab === 'algebra' && <AlgebraView />}
-            {activeLeftTab === 'table' && <TableView />}
-            {activeLeftTab === 'spreadsheet' && <SpreadsheetView />}
+            {activeLeftTab === 'algebra' && (
+              <div className="w-80 h-full bg-white overflow-y-auto">
+                <AlgebraView />
+              </div>
+            )}
+            {activeLeftTab === 'table' && (
+              <div className="w-80 h-full bg-white overflow-y-auto">
+                <TableView />
+              </div>
+            )}
+            {activeLeftTab === 'spreadsheet' && (
+              <div className="w-80 h-full bg-white overflow-y-auto">
+                <SpreadsheetView />
+              </div>
+            )}
           </div>
         )}
 
-        {/* Main Canvas */}
+        {/* Main Canvas Area */}
         <GraphicsView />
-        
-        {/* Bottom Tooltip */}
-        <BottomTooltip />
-        
+
         {/* Modals */}
         <SliderModal />
         <AlertModal />
         <ValueInputModal />
       </div>
+
+      {/* Subtle Tool Guidance Bar at bottom */}
+      <BottomTooltip />
     </div>
   );
 };
 
 const BottomTooltip: React.FC = () => {
-  const { activeToolId: storeActiveToolId } = require('../../store/useToolStore').useToolStore();
-  const { TOOLS } = require('../tools-panel/toolsConfig');
-  
-  const activeTool = TOOLS.find((t: any) => t.id === storeActiveToolId);
-  if (!activeTool || storeActiveToolId === 'move') return null;
+  const activeToolId = useToolStore((state) => state.activeToolId);
+  const activeTool = TOOLS.find((t) => t.id === activeToolId);
+  if (!activeTool || activeToolId === 'move') return null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-[#292929] text-white p-4 flex justify-between items-center z-50">
-      <div>
-        <div className="font-bold text-sm">{activeTool.label}</div>
-        <div className="text-gray-300 text-sm mt-1">{activeTool.description}</div>
-      </div>
-      <button className="text-[#a4a0f4] text-sm font-medium hover:text-white transition-colors">
-        Help
-      </button>
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#202124]/90 backdrop-blur-xs text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2.5 z-40 animate-in fade-in duration-150">
+      <span className="font-semibold text-xs text-[#a4a0f4]">{activeTool.label}</span>
+      <span className="text-xs text-gray-200">{activeTool.description}</span>
     </div>
   );
 };
+

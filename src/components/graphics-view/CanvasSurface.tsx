@@ -10,6 +10,8 @@ import { usePanZoom } from '../../hooks/usePanZoom';
 import { worldToScreen } from '../../lib/coords/coordTransform';
 import { resolvePoint } from '../../core/geometry/Point';
 import { renderLivePreview } from './renderers/previewRenderer';
+import { renderSubscriptLabel } from './renderers/labelRenderer';
+import { TOOLS } from '../tools-panel/toolsConfig';
 
 const imageCache: Map<string, HTMLImageElement> = new Map();
 
@@ -40,114 +42,463 @@ export const CanvasSurface: React.FC = () => {
 
     ctx.scale(dpr, dpr);
 
-    const draw = () => {
-      const w = rect.width;
-      const h = rect.height;
+    const w = rect.width;
+    const h = rect.height;
 
-      const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--gk-bg').trim() || '#ffffff';
+    // Dynamic tool cursor
+    const activeToolId = useToolStore.getState().toolManager.getActiveToolId();
+    const toolDef = TOOLS.find((t) => t.id === activeToolId);
+    const activeCursor = toolDef?.cursor || 'crosshair';
+    if (canvas.style.cursor !== activeCursor) {
+      canvas.style.cursor = activeCursor;
+    }
+
+    // Synchronize viewport aspect ratio so 1 unit X == 1 unit Y (isotropic Euclidean space)
+    if (w > 0 && h > 0) {
+      const expectedHeight = (viewport.xMax - viewport.xMin) * (h / w);
+      const currentHeight = viewport.yMax - viewport.yMin;
+      if (Math.abs(expectedHeight - currentHeight) > 1e-4) {
+        const yMid = (viewport.yMin + viewport.yMax) / 2;
+        useViewStore.getState().setViewport({
+          ...viewport,
+          yMin: yMid - expectedHeight / 2,
+          yMax: yMid + expectedHeight / 2,
+        });
+        return; // Next render will have aligned viewport
+      }
+    }
+
+    const draw = () => {
+      const bgColor = '#ffffff';
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, w, h);
 
-      // 1. Draw Grid
-      const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--gk-grid-line').trim() || '#eef0f3';
-      ctx.strokeStyle = gridColor;
-      ctx.lineWidth = 1;
+      // --- DYNAMIC ZOOM-ADAPTIVE GRID & AXIS NUMBERING ---
+      // Target screen distance between major grid lines (approx 70-80px)
+      const targetPixelStep = 75;
+      const xRange = viewport.xMax - viewport.xMin;
+      const yRange = viewport.yMax - viewport.yMin;
+      const rawStepX = (xRange / w) * targetPixelStep;
 
-      const startX = Math.floor(viewport.xMin);
-      const endX = Math.ceil(viewport.xMax);
-      const startY = Math.floor(viewport.yMin);
-      const endY = Math.ceil(viewport.yMax);
+      // Function to calculate standard nice step (1, 2, 5 * 10^k)
+      const getNiceStep = (raw: number) => {
+        if (raw <= 0 || !isFinite(raw)) return 1;
+        const exponent = Math.floor(Math.log10(raw));
+        const powerOf10 = Math.pow(10, exponent);
+        const fraction = raw / powerOf10;
+        let niceFraction = 1;
+        if (fraction < 1.4) {
+          niceFraction = 1;
+        } else if (fraction < 3.2) {
+          niceFraction = 2;
+        } else if (fraction < 7.0) {
+          niceFraction = 5;
+        } else {
+          niceFraction = 10;
+        }
+        return niceFraction * powerOf10;
+      };
 
+      const majorStep = getNiceStep(rawStepX);
+      const minorDivisions = (majorStep / Math.pow(10, Math.floor(Math.log10(majorStep))) === 2) ? 4 : 5;
+      const minorStep = majorStep / minorDivisions;
+
+      // Precision for number formatting
+      const precision = Math.max(0, -Math.floor(Math.log10(majorStep) - 1e-5));
+      const formatNumber = (val: number) => {
+        if (Math.abs(val) < 1e-9) return '0';
+        const str = val.toFixed(precision);
+        return parseFloat(str).toString();
+      };
+
+      // 1. Draw Minor Grid Lines
+      ctx.strokeStyle = '#f5f5f5';
+      ctx.lineWidth = 0.8;
       ctx.beginPath();
-      for (let x = startX; x <= endX; x++) {
+      const minMinorX = Math.floor(viewport.xMin / minorStep) * minorStep;
+      const maxMinorX = Math.ceil(viewport.xMax / minorStep) * minorStep;
+      for (let x = minMinorX; x <= maxMinorX; x += minorStep) {
         const pt = worldToScreen(x, 0, w, h, viewport);
-        ctx.moveTo(pt.x, 0);
-        ctx.lineTo(pt.x, h);
+        ctx.moveTo(Math.round(pt.x) + 0.5, 0);
+        ctx.lineTo(Math.round(pt.x) + 0.5, h);
       }
-      for (let y = startY; y <= endY; y++) {
+      const minMinorY = Math.floor(viewport.yMin / minorStep) * minorStep;
+      const maxMinorY = Math.ceil(viewport.yMax / minorStep) * minorStep;
+      for (let y = minMinorY; y <= maxMinorY; y += minorStep) {
         const pt = worldToScreen(0, y, w, h, viewport);
-        ctx.moveTo(0, pt.y);
-        ctx.lineTo(w, pt.y);
+        ctx.moveTo(0, Math.round(pt.y) + 0.5);
+        ctx.lineTo(w, Math.round(pt.y) + 0.5);
       }
       ctx.stroke();
 
-      // 2. Draw Axes
-      const origin = worldToScreen(0, 0, w, h, viewport);
-      const axisColor = getComputedStyle(document.documentElement).getPropertyValue('--gk-axis').trim() || '#4b5563';
-      ctx.strokeStyle = axisColor;
-      ctx.lineWidth = 2;
+      // 2. Draw Major Grid Lines
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      const minMajorX = Math.floor(viewport.xMin / majorStep) * majorStep;
+      const maxMajorX = Math.ceil(viewport.xMax / majorStep) * majorStep;
+      for (let x = minMajorX; x <= maxMajorX; x += majorStep) {
+        const pt = worldToScreen(x, 0, w, h, viewport);
+        ctx.moveTo(Math.round(pt.x) + 0.5, 0);
+        ctx.lineTo(Math.round(pt.x) + 0.5, h);
+      }
+      const minMajorY = Math.floor(viewport.yMin / majorStep) * majorStep;
+      const maxMajorY = Math.ceil(viewport.yMax / majorStep) * majorStep;
+      for (let y = minMajorY; y <= maxMajorY; y += majorStep) {
+        const pt = worldToScreen(0, y, w, h, viewport);
+        ctx.moveTo(0, Math.round(pt.y) + 0.5);
+        ctx.lineTo(w, Math.round(pt.y) + 0.5);
+      }
+      ctx.stroke();
 
-      // X axis
-      if (origin.y >= 0 && origin.y <= h) {
+      // 3. Draw Axes with Arrows and Labels
+      const origin = worldToScreen(0, 0, w, h, viewport);
+      const axisColor = '#666666'; // GeoGebra sharp neutral axis color
+      ctx.strokeStyle = axisColor;
+      ctx.fillStyle = axisColor;
+      ctx.lineWidth = 1.2;
+
+      const isXOnScreen = origin.y >= 0 && origin.y <= h;
+      const isYOnScreen = origin.x >= 0 && origin.x <= w;
+      const axisY = Math.max(15, Math.min(h - 20, origin.y));
+      const axisX = Math.max(30, Math.min(w - 20, origin.x));
+
+      // X-Axis Line
+      if (isXOnScreen) {
         ctx.beginPath();
         ctx.moveTo(0, origin.y);
         ctx.lineTo(w, origin.y);
         ctx.stroke();
+
+        // Right Arrowhead (positive X)
+        ctx.beginPath();
+        ctx.moveTo(w - 2, origin.y);
+        ctx.lineTo(w - 10, origin.y - 4);
+        ctx.lineTo(w - 10, origin.y + 4);
+        ctx.closePath();
+        ctx.fill();
       }
 
-      // Y axis
-      if (origin.x >= 0 && origin.x <= w) {
+      // Y-Axis Line
+      if (isYOnScreen) {
         ctx.beginPath();
-        ctx.moveTo(origin.x, 0);
-        ctx.lineTo(origin.x, h);
+        ctx.moveTo(origin.x, h);
+        ctx.lineTo(origin.x, 0);
         ctx.stroke();
+
+        // Top Arrowhead (positive Y)
+        ctx.beginPath();
+        ctx.moveTo(origin.x, 2);
+        ctx.lineTo(origin.x - 4, 10);
+        ctx.lineTo(origin.x + 4, 10);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 4. Draw Axis Number Labels & Ticks
+      ctx.font = '500 11px Arial, Inter, -apple-system, sans-serif';
+      ctx.fillStyle = '#666666';
+      ctx.strokeStyle = '#666666';
+      ctx.lineWidth = 1;
+
+      // X-Axis Numbers & Ticks
+      for (let x = minMajorX; x <= maxMajorX; x += majorStep) {
+        if (Math.abs(x) < 1e-9) continue; // Skip origin here, drawn separately
+        const pt = worldToScreen(x, 0, w, h, viewport);
+        if (pt.x < 25 || pt.x > w - 25) continue;
+
+        // Tick
+        if (isXOnScreen) {
+          ctx.beginPath();
+          ctx.moveTo(Math.round(pt.x) + 0.5, origin.y - 3);
+          ctx.lineTo(Math.round(pt.x) + 0.5, origin.y + 3);
+          ctx.stroke();
+        }
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const labelY = isXOnScreen ? Math.min(h - 16, origin.y + 5) : (axisY > h / 2 ? h - 18 : 6);
+        ctx.fillText(formatNumber(x), pt.x, labelY);
+      }
+
+      // Y-Axis Numbers & Ticks
+      for (let y = minMajorY; y <= maxMajorY; y += majorStep) {
+        if (Math.abs(y) < 1e-9) continue; // Skip origin
+        const pt = worldToScreen(0, y, w, h, viewport);
+        if (pt.y < 25 || pt.y > h - 25) continue;
+
+        // Tick
+        if (isYOnScreen) {
+          ctx.beginPath();
+          ctx.moveTo(origin.x - 3, Math.round(pt.y) + 0.5);
+          ctx.lineTo(origin.x + 3, Math.round(pt.y) + 0.5);
+          ctx.stroke();
+        }
+
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        const labelX = isYOnScreen ? Math.max(22, origin.x - 6) : (axisX > w / 2 ? w - 8 : 24);
+        ctx.fillText(formatNumber(y), labelX, pt.y);
+      }
+
+      // Origin '0'
+      if (isXOnScreen && isYOnScreen) {
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText('0', origin.x - 5, origin.y + 4);
       }
 
       // 3. Draw Geometry Objects
       objects.forEach((obj) => {
         if (!obj.visible || !obj.value) return;
 
-        if (obj.type === 'circle') {
+        if (obj.type === 'circle' || obj.type === 'conic') {
           const circleVal = obj.value as any;
-          if (circleVal?.center && typeof circleVal?.radius === 'number') {
+          const pixelScale = w / (viewport.xMax - viewport.xMin);
+
+          if ((circleVal?.conicType === 'ellipse' || circleVal?.type === 'ellipse') && circleVal?.center) {
             const sCenter = worldToScreen(circleVal.center.x, circleVal.center.y, w, h, viewport);
-            const pixelScale = w / (viewport.xMax - viewport.xMin);
-            const pixelRadius = circleVal.radius * pixelScale;
+            const aScreen = circleVal.a * pixelScale;
+            const bScreen = circleVal.b * pixelScale;
 
             ctx.beginPath();
-            ctx.arc(sCenter.x, sCenter.y, pixelRadius, 0, 2 * Math.PI);
+            ctx.ellipse(sCenter.x, sCenter.y, aScreen, bScreen, -circleVal.angle, 0, 2 * Math.PI);
             ctx.strokeStyle = obj.style.color || '#4b5563';
             ctx.lineWidth = obj.style.thickness || 2;
             ctx.stroke();
 
             if (obj.labelVisible && obj.label) {
-              ctx.fillStyle = obj.style.color || '#4b5563';
+              renderSubscriptLabel(ctx, obj.label, sCenter.x + aScreen * 0.7 + 5, sCenter.y - bScreen * 0.7 - 5, {
+                isItalic: true,
+                color: obj.style.color || '#4b5563',
+                fontSize: 12,
+              });
+            }
+          } else if ((circleVal?.conicType === 'parabola' || circleVal?.type === 'parabola') && circleVal?.vertex) {
+            const { vertex, p, angle } = circleVal;
+            const cosA = Math.cos(angle);
+            const sinA = Math.sin(angle);
+            ctx.beginPath();
+            let first = true;
+            for (let t = -15; t <= 15; t += 0.2) {
+              const u = 2 * p * t;
+              const v = p * t * t;
+              const wx = vertex.x + u * cosA - v * sinA;
+              const wy = vertex.y + u * sinA + v * cosA;
+              const sp = worldToScreen(wx, wy, w, h, viewport);
+              if (first) {
+                ctx.moveTo(sp.x, sp.y);
+                first = false;
+              } else {
+                ctx.lineTo(sp.x, sp.y);
+              }
+            }
+            ctx.strokeStyle = obj.style.color || '#4b5563';
+            ctx.lineWidth = obj.style.thickness || 2;
+            ctx.stroke();
+
+            if (obj.labelVisible && obj.label) {
+              const sVertex = worldToScreen(vertex.x, vertex.y, w, h, viewport);
+              renderSubscriptLabel(ctx, obj.label, sVertex.x + 8, sVertex.y - 8, {
+                isItalic: true,
+                color: obj.style.color || '#4b5563',
+                fontSize: 12,
+              });
+            }
+          } else if ((circleVal?.conicType === 'hyperbola' || circleVal?.type === 'hyperbola') && circleVal?.center) {
+            const { center, a, b, angle } = circleVal;
+            const cosA = Math.cos(angle);
+            const sinA = Math.sin(angle);
+
+            // Right branch
+            ctx.beginPath();
+            let first = true;
+            for (let t = -2.5; t <= 2.5; t += 0.1) {
+              const u = a * Math.cosh(t);
+              const v = b * Math.sinh(t);
+              const wx = center.x + u * cosA - v * sinA;
+              const wy = center.y + u * sinA + v * cosA;
+              const sp = worldToScreen(wx, wy, w, h, viewport);
+              if (first) {
+                ctx.moveTo(sp.x, sp.y);
+                first = false;
+              } else {
+                ctx.lineTo(sp.x, sp.y);
+              }
+            }
+            ctx.strokeStyle = obj.style.color || '#4b5563';
+            ctx.lineWidth = obj.style.thickness || 2;
+            ctx.stroke();
+
+            // Left branch
+            ctx.beginPath();
+            first = true;
+            for (let t = -2.5; t <= 2.5; t += 0.1) {
+              const u = -a * Math.cosh(t);
+              const v = b * Math.sinh(t);
+              const wx = center.x + u * cosA - v * sinA;
+              const wy = center.y + u * sinA + v * cosA;
+              const sp = worldToScreen(wx, wy, w, h, viewport);
+              if (first) {
+                ctx.moveTo(sp.x, sp.y);
+                first = false;
+              } else {
+                ctx.lineTo(sp.x, sp.y);
+              }
+            }
+            ctx.strokeStyle = obj.style.color || '#4b5563';
+            ctx.lineWidth = obj.style.thickness || 2;
+            ctx.stroke();
+
+            if (obj.labelVisible && obj.label) {
+              const sCenter = worldToScreen(center.x, center.y, w, h, viewport);
+              renderSubscriptLabel(ctx, obj.label, sCenter.x + 8, sCenter.y - 8, {
+                isItalic: true,
+                color: obj.style.color || '#4b5563',
+                fontSize: 12,
+              });
+            }
+          } else if (circleVal?.center && typeof circleVal?.radius === 'number') {
+            const sCenter = worldToScreen(circleVal.center.x, circleVal.center.y, w, h, viewport);
+            const pixelRadius = circleVal.radius * pixelScale;
+
+            if (circleVal.arc) {
+              const startScreen = -circleVal.arc.startAngle;
+              const endScreen = -circleVal.arc.endAngle;
+              const anticlockwise = !circleVal.arc.anticlockwise;
+
+              ctx.beginPath();
+              if (circleVal.filled || circleVal.hasRadiusLines) {
+                ctx.moveTo(sCenter.x, sCenter.y);
+                ctx.arc(sCenter.x, sCenter.y, pixelRadius, startScreen, endScreen, anticlockwise);
+                ctx.closePath();
+                ctx.fillStyle = obj.style.color ? `${obj.style.color}33` : 'rgba(21, 101, 239, 0.2)';
+                ctx.fill();
+                ctx.strokeStyle = obj.style.color || '#4b5563';
+                ctx.lineWidth = obj.style.thickness || 2;
+                ctx.stroke();
+              } else {
+                ctx.arc(sCenter.x, sCenter.y, pixelRadius, startScreen, endScreen, anticlockwise);
+                ctx.strokeStyle = obj.style.color || '#4b5563';
+                ctx.lineWidth = obj.style.thickness || 2;
+                ctx.stroke();
+              }
+            } else {
+              ctx.beginPath();
+              ctx.arc(sCenter.x, sCenter.y, pixelRadius, 0, 2 * Math.PI);
+              ctx.strokeStyle = obj.style.color || '#4b5563';
+              ctx.lineWidth = obj.style.thickness || 2;
+              ctx.stroke();
+            }
+
+            if (obj.labelVisible && obj.label) {
+              renderSubscriptLabel(ctx, obj.label, sCenter.x + pixelRadius * 0.7 + 5, sCenter.y - pixelRadius * 0.7 - 5, {
+                isItalic: true,
+                color: obj.style.color || '#4b5563',
+                fontSize: 12,
+              });
+            }
+          }
+        } else if (obj.type === 'polygon') {
+          const polyVal = obj.value as any;
+          if (polyVal?.vertices && polyVal.vertices.length >= 3) {
+            const screenPts = polyVal.vertices.map((v: any) =>
+              worldToScreen(v.x, v.y, w, h, viewport)
+            );
+
+            // Fill
+            ctx.beginPath();
+            ctx.moveTo(screenPts[0].x, screenPts[0].y);
+            for (let i = 1; i < screenPts.length; i++) {
+              ctx.lineTo(screenPts[i].x, screenPts[i].y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = obj.style.color ? `${obj.style.color}26` : 'rgba(21, 101, 239, 0.15)';
+            ctx.fill();
+
+            // Edges
+            if (polyVal.edgeStyle === 'vector') {
+              for (let i = 0; i < screenPts.length; i++) {
+                const s1 = screenPts[i];
+                const s2 = screenPts[(i + 1) % screenPts.length];
+                ctx.beginPath();
+                ctx.moveTo(s1.x, s1.y);
+                ctx.lineTo(s2.x, s2.y);
+                ctx.strokeStyle = obj.style.color || '#1565ef';
+                ctx.lineWidth = obj.style.thickness || 2;
+                ctx.stroke();
+
+                const angle = Math.atan2(s2.y - s1.y, s2.x - s1.x);
+                const headLen = 10;
+                ctx.beginPath();
+                ctx.moveTo(s2.x, s2.y);
+                ctx.lineTo(s2.x - headLen * Math.cos(angle - Math.PI / 6), s2.y - headLen * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(s2.x - headLen * Math.cos(angle + Math.PI / 6), s2.y - headLen * Math.sin(angle + Math.PI / 6));
+                ctx.closePath();
+                ctx.fillStyle = obj.style.color || '#1565ef';
+                ctx.fill();
+              }
+            } else {
+              ctx.beginPath();
+              ctx.moveTo(screenPts[0].x, screenPts[0].y);
+              for (let i = 1; i < screenPts.length; i++) {
+                ctx.lineTo(screenPts[i].x, screenPts[i].y);
+              }
+              ctx.closePath();
+              ctx.strokeStyle = obj.style.color || '#1565ef';
+              ctx.lineWidth = obj.style.thickness || 2;
+              ctx.stroke();
+            }
+
+            if (obj.labelVisible && obj.label) {
+              const cx = screenPts.reduce((sum: number, p: any) => sum + p.x, 0) / screenPts.length;
+              const cy = screenPts.reduce((sum: number, p: any) => sum + p.y, 0) / screenPts.length;
+              ctx.fillStyle = obj.style.color || '#1565ef';
               ctx.font = 'italic 12px Inter, sans-serif';
-              ctx.fillText(obj.label, sCenter.x + pixelRadius * 0.7 + 5, sCenter.y - pixelRadius * 0.7 - 5);
+              ctx.fillText(obj.label, cx, cy);
             }
           }
         } else if (obj.type === 'line') {
           const lineVal = obj.value as any;
-          let a = lineVal?.a;
-          let b = lineVal?.b;
-          let c = lineVal?.c;
+          let p1 = lineVal?.p1;
+          let p2 = lineVal?.p2;
 
-          if (lineVal?.p1 && lineVal?.p2) {
-            const p1 = lineVal.p1;
-            const p2 = lineVal.p2;
-            a = p1.y - p2.y;
-            b = p2.x - p1.x;
-            c = p1.x * p2.y - p2.x * p1.y;
-          }
+          if (p1 && p2) {
+            const s1 = worldToScreen(p1.x, p1.y, w, h, viewport);
+            const s2 = worldToScreen(p2.x, p2.y, w, h, viewport);
+            const dx = s2.x - s1.x;
+            const dy = s2.y - s1.y;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            if (len > 0) {
+              const ext = Math.max(w, h) * 4;
+              ctx.beginPath();
+              ctx.moveTo(s1.x - (dx / len) * ext, s1.y - (dy / len) * ext);
+              ctx.lineTo(s2.x + (dx / len) * ext, s2.y + (dy / len) * ext);
+              ctx.strokeStyle = obj.style.color || '#4b5563';
+              ctx.lineWidth = obj.style.thickness || 2;
+              ctx.stroke();
 
-          if (typeof a === 'number' && typeof b === 'number' && typeof c === 'number') {
-            const pts: { x: number; y: number }[] = [];
-            if (Math.abs(b) > 1e-9) {
-              const y1 = (-c - a * viewport.xMin) / b;
-              if (y1 >= viewport.yMin && y1 <= viewport.yMax) pts.push({ x: viewport.xMin, y: y1 });
-              const y2 = (-c - a * viewport.xMax) / b;
-              if (y2 >= viewport.yMin && y2 <= viewport.yMax) pts.push({ x: viewport.xMax, y: y2 });
+              if (obj.labelVisible && obj.label) {
+                renderSubscriptLabel(ctx, obj.label, (s1.x + s2.x) / 2 + 10, (s1.y + s2.y) / 2 - 10, {
+                  isItalic: true,
+                  color: obj.style.color || '#4b5563',
+                  fontSize: 12,
+                });
+              }
             }
-            if (Math.abs(a) > 1e-9) {
-              const x1 = (-c - b * viewport.yMin) / a;
-              if (x1 >= viewport.xMin && x1 <= viewport.xMax) pts.push({ x: x1, y: viewport.yMin });
-              const x2 = (-c - b * viewport.yMax) / a;
-              if (x2 >= viewport.xMin && x2 <= viewport.xMax) pts.push({ x: x2, y: viewport.yMax });
-            }
-
-            if (pts.length >= 2) {
-              const s1 = worldToScreen(pts[0].x, pts[0].y, w, h, viewport);
-              const s2 = worldToScreen(pts[1].x, pts[1].y, w, h, viewport);
+          } else if (typeof lineVal?.a === 'number' && typeof lineVal?.b === 'number' && typeof lineVal?.c === 'number') {
+            const a = lineVal.a;
+            const b = lineVal.b;
+            const c = lineVal.c;
+            const norm = Math.sqrt(a * a + b * b);
+            if (norm > 0) {
+              const x0 = (-a * c) / (norm * norm);
+              const y0 = (-b * c) / (norm * norm);
+              const uX = -b / norm;
+              const uY = a / norm;
+              const ext = Math.max(viewport.xMax - viewport.xMin, viewport.yMax - viewport.yMin) * 3;
+              const s1 = worldToScreen(x0 - uX * ext, y0 - uY * ext, w, h, viewport);
+              const s2 = worldToScreen(x0 + uX * ext, y0 + uY * ext, w, h, viewport);
 
               ctx.beginPath();
               ctx.moveTo(s1.x, s1.y);
@@ -157,9 +508,11 @@ export const CanvasSurface: React.FC = () => {
               ctx.stroke();
 
               if (obj.labelVisible && obj.label) {
-                ctx.fillStyle = obj.style.color || '#4b5563';
-                ctx.font = 'italic 12px Inter, sans-serif';
-                ctx.fillText(obj.label, (s1.x + s2.x) / 2 + 10, (s1.y + s2.y) / 2 - 10);
+                renderSubscriptLabel(ctx, obj.label, (s1.x + s2.x) / 2 + 10, (s1.y + s2.y) / 2 - 10, {
+                  isItalic: true,
+                  color: obj.style.color || '#4b5563',
+                  fontSize: 12,
+                });
               }
             }
           }
@@ -185,16 +538,29 @@ export const CanvasSurface: React.FC = () => {
         } else if (obj.type === 'polyline') {
           const val = obj.value as any;
           if (val?.points && val.points.length >= 2) {
+            const screenPoints = val.points.map((p: any) => worldToScreen(p.x, p.y, w, h, viewport));
+            ctx.save();
             ctx.beginPath();
-            const s0 = worldToScreen(val.points[0].x, val.points[0].y, w, h, viewport);
-            ctx.moveTo(s0.x, s0.y);
-            for (let i = 1; i < val.points.length; i++) {
-              const s = worldToScreen(val.points[i].x, val.points[i].y, w, h, viewport);
-              ctx.lineTo(s.x, s.y);
-            }
-            ctx.strokeStyle = obj.style.color || '#4b5563';
+            ctx.strokeStyle = obj.style.color || '#0f172a';
             ctx.lineWidth = obj.style.thickness || 2.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            ctx.moveTo(screenPoints[0].x, screenPoints[0].y);
+            if (screenPoints.length === 2) {
+              ctx.lineTo(screenPoints[1].x, screenPoints[1].y);
+            } else {
+              for (let i = 1; i < screenPoints.length - 1; i++) {
+                const xc = (screenPoints[i].x + screenPoints[i + 1].x) / 2;
+                const yc = (screenPoints[i].y + screenPoints[i + 1].y) / 2;
+                ctx.quadraticCurveTo(screenPoints[i].x, screenPoints[i].y, xc, yc);
+              }
+              const last = screenPoints[screenPoints.length - 1];
+              const secondLast = screenPoints[screenPoints.length - 2];
+              ctx.quadraticCurveTo(secondLast.x, secondLast.y, last.x, last.y);
+            }
             ctx.stroke();
+            ctx.restore();
           }
         } else if (obj.type === 'ray') {
           const val = obj.value as any;
@@ -333,9 +699,16 @@ export const CanvasSurface: React.FC = () => {
           ctx.fill();
 
           if (obj.labelVisible && obj.label) {
-            ctx.fillStyle = '#1e293b';
-            ctx.font = 'bold 12px Inter, sans-serif';
-            ctx.fillText(obj.label, screenPt.x + 7, screenPt.y - 7);
+            const isComplex = (obj.value as any)?.isComplex;
+            const sign = pt.y >= 0 ? '+' : '-';
+            const labelText = isComplex
+              ? `${obj.label} = ${Number(pt.x.toFixed(2))} ${sign} ${Number(Math.abs(pt.y).toFixed(2))}i`
+              : obj.label;
+            renderSubscriptLabel(ctx, labelText, screenPt.x + 9, screenPt.y - 8, {
+              isBold: true,
+              color: '#0f172a',
+              fontSize: 13,
+            });
           }
         } else if (obj.type === 'slider') {
           const sliderVal = obj.value as any;

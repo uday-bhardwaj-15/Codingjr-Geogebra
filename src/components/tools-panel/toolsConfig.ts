@@ -1,5 +1,7 @@
 import { ToolCategory, ToolDefinition } from '../../types/tools';
 
+export const PEN_CURSOR = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%231e293b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E\") 2 22, crosshair";
+
 export const COLLAPSED_CATEGORIES: { id: ToolCategory; label: string }[] = [
   { id: 'basic',     label: 'Basic Tools' },
   { id: 'edit',      label: 'Edit' },
@@ -27,13 +29,13 @@ export const TOOL_CATEGORIES = ALL_TOOL_CATEGORIES;
 
 export const TOOLS: ToolDefinition[] = [
   // ==================== Basic Tools ====================
-  { id: 'move',              legacyMode: 0,  label: 'Move',              description: 'Drag or select object',                                     category: 'basic', icon: 'move',              clicksRequired: 0, enabled: true },
-  { id: 'point',             legacyMode: 1,  label: 'Point',             description: 'Select position or line, function, or curve',               category: 'basic', icon: 'point',             clicksRequired: 1, enabled: true },
-  { id: 'slider',            legacyMode: 25, label: 'Slider',            description: 'Select position',                                            category: 'basic', icon: 'slider',            clicksRequired: 1, enabled: true },
-  { id: 'intersect',         legacyMode: 5,  label: 'Intersect',         description: 'Select intersection or two objects successively',            category: 'basic', icon: 'intersect',         clicksRequired: 2, enabled: true },
-  { id: 'extremum',          legacyMode: 75, label: 'Extremum',          description: 'Select a function',                                          category: 'basic', icon: 'extremum',          clicksRequired: 1, enabled: true },
-  { id: 'roots',             legacyMode: 76, label: 'Roots',             description: 'Select a function',                                          category: 'basic', icon: 'roots',             clicksRequired: 1, enabled: true },
-  { id: 'best-fit-line',     legacyMode: 58, label: 'Best Fit Line',     description: 'Select several points or list of points',                    category: 'basic', icon: 'best-fit-line',     clicksRequired: 2, enabled: true },
+  { id: 'move',              legacyMode: 0,  label: 'Move',              description: 'Drag or select object',                                     category: 'basic', icon: 'move',              clicksRequired: 0, enabled: true, cursor: 'default' },
+  { id: 'point',             legacyMode: 1,  label: 'Point',             description: 'Select position or line, function, or curve',               category: 'basic', icon: 'point',             clicksRequired: 1, enabled: true, cursor: 'crosshair' },
+  { id: 'slider',            legacyMode: 25, label: 'Slider',            description: 'Select position',                                            category: 'basic', icon: 'slider',            clicksRequired: 1, enabled: true, cursor: 'crosshair' },
+  { id: 'intersect',         legacyMode: 5,  label: 'Intersect',         description: 'Select intersection or two objects successively',            category: 'basic', icon: 'intersect',         clicksRequired: 2, enabled: true, cursor: 'crosshair' },
+  { id: 'extremum',          legacyMode: 75, label: 'Extremum',          description: 'Select a function',                                          category: 'basic', icon: 'extremum',          clicksRequired: 1, enabled: true, cursor: 'crosshair' },
+  { id: 'roots',             legacyMode: 76, label: 'Roots',             description: 'Select a function',                                          category: 'basic', icon: 'roots',             clicksRequired: 1, enabled: true, cursor: 'crosshair' },
+  { id: 'best-fit-line',     legacyMode: 58, label: 'Best Fit Line',     description: 'Select several points or list of points',                    category: 'basic', icon: 'best-fit-line',     clicksRequired: 2, enabled: true, cursor: 'crosshair' },
 
   // ==================== Edit ====================
   { id: 'select-objects',    legacyMode: 77, label: 'Select Objects',    description: 'Click on object to select it or drag a rectangle',          category: 'edit',  icon: 'select-objects',    clicksRequired: 0, enabled: true },
@@ -90,37 +92,37 @@ export const TOOLS: ToolDefinition[] = [
   { id: 'circle-center-point',   legacyMode: 10, label: 'Circle with Center through Point', description: 'Select center point, then point on circle', category: 'circles', icon: 'circle-center-point', clicksRequired: 2, enabled: true },
   { id: 'compass',               legacyMode: 53, label: 'Compass',                          description: 'Select segment or two points for radius, then center point', category: 'circles', icon: 'compass', clicksRequired: 3, enabled: true },
   { id: 'semicircle',            legacyMode: 24, label: 'Semicircle',                       description: 'Select two end points', category: 'circles', icon: 'semicircle', clicksRequired: 2, enabled: true },
-  // Expanded Circles (Coming soon)
-  { id: 'circle-center-radius',  legacyMode: 34, label: 'Circle: Center & Radius',          description: 'Select center point, then enter radius', category: 'circles', icon: 'circle-center-radius', clicksRequired: 1, enabled: false, isExpandedOnly: true },
-  { id: 'circle-three-points',   legacyMode: 11, label: 'Circle through 3 Points',          description: 'Select three points', category: 'circles', icon: 'circle-three-points', clicksRequired: 3, enabled: false, isExpandedOnly: true },
-  { id: 'circular-arc',          legacyMode: 20, label: 'Circular Arc',                     description: 'Select center and two points', category: 'circles', icon: 'circular-arc', clicksRequired: 3, enabled: false, isExpandedOnly: true },
-  { id: 'circumcircular-arc',    legacyMode: 22, label: 'Circumcircular Arc',               description: 'Select three points on arc', category: 'circles', icon: 'circumcircular-arc', clicksRequired: 3, enabled: false, isExpandedOnly: true },
-  { id: 'circular-sector',       legacyMode: 21, label: 'Circular Sector',                  description: 'Select center and two points', category: 'circles', icon: 'circular-sector', clicksRequired: 3, enabled: false, isExpandedOnly: true },
-  { id: 'circumcircular-sector', legacyMode: 23, label: 'Circumcircular Sector',           description: 'Select three points on sector', category: 'circles', icon: 'circumcircular-sector', clicksRequired: 3, enabled: false, isExpandedOnly: true },
+  // Expanded Circles
+  { id: 'circle-center-radius',  legacyMode: 34, label: 'Circle: Center & Radius',          description: 'Select center point, then enter radius', category: 'circles', icon: 'circle-center-radius', clicksRequired: 1, enabled: true, isExpandedOnly: true },
+  { id: 'circle-three-points',   legacyMode: 11, label: 'Circle through 3 Points',          description: 'Select three points', category: 'circles', icon: 'circle-three-points', clicksRequired: 3, enabled: true, isExpandedOnly: true },
+  { id: 'circular-arc',          legacyMode: 20, label: 'Circular Arc',                     description: 'Select center and two points', category: 'circles', icon: 'circular-arc', clicksRequired: 3, enabled: true, isExpandedOnly: true },
+  { id: 'circumcircular-arc',    legacyMode: 22, label: 'Circumcircular Arc',               description: 'Select three points on arc', category: 'circles', icon: 'circumcircular-arc', clicksRequired: 3, enabled: true, isExpandedOnly: true },
+  { id: 'circular-sector',       legacyMode: 21, label: 'Circular Sector',                  description: 'Select center and two points', category: 'circles', icon: 'circular-sector', clicksRequired: 3, enabled: true, isExpandedOnly: true },
+  { id: 'circumcircular-sector', legacyMode: 23, label: 'Circumcircular Sector',           description: 'Select three points on sector', category: 'circles', icon: 'circumcircular-sector', clicksRequired: 3, enabled: true, isExpandedOnly: true },
 
   // ==================== Points (New Category - Expanded Only) ====================
-  { id: 'point-on-object',       legacyMode: 501, label: 'Point on Object',        description: 'Click inside object or on its perimeter',        category: 'points', icon: 'point-on-object',           clicksRequired: 1, enabled: false, isExpandedOnly: true },
-  { id: 'attach-detach-point',   legacyMode: 67,  label: 'Attach / Detach Point',  description: 'Select point, then object to attach to',          category: 'points', icon: 'attach-detach-point',       clicksRequired: 2, enabled: false, isExpandedOnly: true },
-  { id: 'complex-number',        legacyMode: 72,  label: 'Complex Number',         description: 'Click on graphics view to create complex number',category: 'points', icon: 'complex-number',           clicksRequired: 1, enabled: false, isExpandedOnly: true },
-  { id: 'list',                  legacyMode: 71,  label: 'List',                   description: 'Select objects to create a list',                category: 'points', icon: 'list',                     clicksRequired: 1, enabled: false, isExpandedOnly: true },
+  { id: 'point-on-object',       legacyMode: 501, label: 'Point on Object',        description: 'Click inside object or on its perimeter',        category: 'points', icon: 'point-on-object',           clicksRequired: 1, enabled: true, isExpandedOnly: true },
+  { id: 'attach-detach-point',   legacyMode: 67,  label: 'Attach / Detach Point',  description: 'Select point, then object to attach to',          category: 'points', icon: 'attach-detach-point',       clicksRequired: 2, enabled: true, isExpandedOnly: true },
+  { id: 'complex-number',        legacyMode: 72,  label: 'Complex Number',         description: 'Click on graphics view to create complex number',category: 'points', icon: 'complex-number',           clicksRequired: 1, enabled: true, isExpandedOnly: true },
+  { id: 'list',                  legacyMode: 71,  label: 'List',                   description: 'Select objects to create a list',                category: 'points', icon: 'list',                     clicksRequired: 1, enabled: true, isExpandedOnly: true },
 
   // ==================== Polygons (New Category - Expanded Only) ====================
-  { id: 'polygon',               legacyMode: 16,  label: 'Polygon',                description: 'Select all vertices, then click first vertex again', category: 'polygons', icon: 'polygon',             clicksRequired: 3, enabled: false, isExpandedOnly: true },
-  { id: 'regular-polygon',       legacyMode: 51,  label: 'Regular Polygon',        description: 'Select two points and enter number of vertices',   category: 'polygons', icon: 'regular-polygon',         clicksRequired: 2, enabled: false, isExpandedOnly: true },
-  { id: 'vector-polygon',        legacyMode: 70,  label: 'Vector Polygon',         description: 'Select all vertices, then click first vertex again', category: 'polygons', icon: 'vector-polygon',      clicksRequired: 3, enabled: false, isExpandedOnly: true },
-  { id: 'rigid-polygon',         legacyMode: 64,  label: 'Rigid Polygon',          description: 'Select all vertices, then click first vertex again', category: 'polygons', icon: 'rigid-polygon',       clicksRequired: 3, enabled: false, isExpandedOnly: true },
+  { id: 'polygon',               legacyMode: 16,  label: 'Polygon',                description: 'Select all vertices, then click first vertex again', category: 'polygons', icon: 'polygon',             clicksRequired: 3, enabled: true, isExpandedOnly: true },
+  { id: 'regular-polygon',       legacyMode: 51,  label: 'Regular Polygon',        description: 'Select two points and enter number of vertices',   category: 'polygons', icon: 'regular-polygon',         clicksRequired: 2, enabled: true, isExpandedOnly: true },
+  { id: 'vector-polygon',        legacyMode: 70,  label: 'Vector Polygon',         description: 'Select all vertices, then click first vertex again', category: 'polygons', icon: 'vector-polygon',      clicksRequired: 3, enabled: true, isExpandedOnly: true },
+  { id: 'rigid-polygon',         legacyMode: 64,  label: 'Rigid Polygon',          description: 'Select all vertices, then click first vertex again', category: 'polygons', icon: 'rigid-polygon',       clicksRequired: 3, enabled: true, isExpandedOnly: true },
 
   // ==================== Conics (New Category - Expanded Only) ====================
-  { id: 'ellipse',               legacyMode: 55,  label: 'Ellipse',                description: 'Select two foci and a point on ellipse',          category: 'conics', icon: 'ellipse',                  clicksRequired: 3, enabled: false, isExpandedOnly: true },
-  { id: 'conic-five-points',     legacyMode: 12,  label: 'Conic through 5 Points', description: 'Select five points',                              category: 'conics', icon: 'conic-five-points',        clicksRequired: 5, enabled: false, isExpandedOnly: true },
-  { id: 'parabola',              legacyMode: 57,  label: 'Parabola',               description: 'Select point and directrix',                      category: 'conics', icon: 'parabola',                 clicksRequired: 2, enabled: false, isExpandedOnly: true },
-  { id: 'hyperbola',             legacyMode: 56,  label: 'Hyperbola',              description: 'Select two foci and a point on hyperbola',        category: 'conics', icon: 'hyperbola',                clicksRequired: 3, enabled: false, isExpandedOnly: true },
+  { id: 'ellipse',               legacyMode: 55,  label: 'Ellipse',                description: 'Select two foci and a point on ellipse',          category: 'conics', icon: 'ellipse',                  clicksRequired: 3, enabled: true, isExpandedOnly: true },
+  { id: 'conic-five-points',     legacyMode: 12,  label: 'Conic through 5 Points', description: 'Select five points',                              category: 'conics', icon: 'conic-five-points',        clicksRequired: 5, enabled: true, isExpandedOnly: true },
+  { id: 'parabola',              legacyMode: 57,  label: 'Parabola',               description: 'Select point and directrix',                      category: 'conics', icon: 'parabola',                 clicksRequired: 2, enabled: true, isExpandedOnly: true },
+  { id: 'hyperbola',             legacyMode: 56,  label: 'Hyperbola',              description: 'Select two foci and a point on hyperbola',        category: 'conics', icon: 'hyperbola',                clicksRequired: 3, enabled: true, isExpandedOnly: true },
 
   // ==================== Others (New Category - Expanded Only) ====================
-  { id: 'pen',                   legacyMode: 62,  label: 'Pen',                    description: 'Draw freehand on graphics view',                  category: 'others', icon: 'pen',                      clicksRequired: 0, enabled: false, isExpandedOnly: true },
-  { id: 'freehand-shape',        legacyMode: 73,  label: 'Freehand Shape',         description: 'Sketch a function or geometric object',           category: 'others', icon: 'freehand-shape',           clicksRequired: 0, enabled: false, isExpandedOnly: true },
-  { id: 'relation',              legacyMode: 14,  label: 'Relation',               description: 'Select two objects',                              category: 'others', icon: 'relation',                 clicksRequired: 2, enabled: false, isExpandedOnly: true },
-  { id: 'button',                legacyMode: 60,  label: 'Button',                 description: 'Click on graphics view to insert button',         category: 'others', icon: 'button',                   clicksRequired: 1, enabled: false, isExpandedOnly: true },
-  { id: 'check-box',             legacyMode: 52,  label: 'Check Box',              description: 'Click on graphics view to insert check box',      category: 'others', icon: 'check-box',                clicksRequired: 1, enabled: false, isExpandedOnly: true },
-  { id: 'input-box',             legacyMode: 61,  label: 'Input Box',              description: 'Click on graphics view to insert input box',      category: 'others', icon: 'input-box',                clicksRequired: 1, enabled: false, isExpandedOnly: true },
+  { id: 'pen',                   legacyMode: 62,  label: 'Pen',                    description: 'Draw freehand on graphics view',                  category: 'others', icon: 'pen',                      clicksRequired: 0, enabled: true, isExpandedOnly: true, cursor: PEN_CURSOR },
+  { id: 'freehand-shape',        legacyMode: 73,  label: 'Freehand Shape',         description: 'Sketch a function or geometric object',           category: 'others', icon: 'freehand-shape',           clicksRequired: 0, enabled: true, isExpandedOnly: true, cursor: PEN_CURSOR },
+  { id: 'relation',              legacyMode: 14,  label: 'Relation',               description: 'Select two objects',                              category: 'others', icon: 'relation',                 clicksRequired: 2, enabled: true, isExpandedOnly: true, cursor: 'crosshair' },
+  { id: 'button',                legacyMode: 60,  label: 'Button',                 description: 'Click on graphics view to insert button',         category: 'others', icon: 'button',                   clicksRequired: 1, enabled: true, isExpandedOnly: true, cursor: 'crosshair' },
+  { id: 'check-box',             legacyMode: 52,  label: 'Check Box',              description: 'Click on graphics view to insert check box',      category: 'others', icon: 'check-box',                clicksRequired: 1, enabled: true, isExpandedOnly: true, cursor: 'crosshair' },
+  { id: 'input-box',             legacyMode: 61,  label: 'Input Box',              description: 'Click on graphics view to insert input box',      category: 'others', icon: 'input-box',                clicksRequired: 1, enabled: true, isExpandedOnly: true, cursor: 'crosshair' },
 ];

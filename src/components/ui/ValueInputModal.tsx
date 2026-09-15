@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useUIStore } from '../../store/useUIStore';
 
 export const ValueInputModal: React.FC = () => {
@@ -25,9 +25,22 @@ export const ValueInputModal: React.FC = () => {
     }
   }, [activeModal]);
 
-  if (!activeModal || activeModal.type !== 'valueInput') return null;
+  const modalProps = activeModal?.type === 'valueInput' ? activeModal.props : null;
 
-  const { title, label, inputType, placeholder, onConfirm, onCancel } = activeModal.props;
+  const isValid = useMemo(() => {
+    if (!modalProps) return false;
+    const trimmed = value.trim();
+    if (modalProps.inputType === 'number' || modalProps.inputType === 'angle') {
+      if (!trimmed) return false;
+      const parsed = parseFloat(trimmed.replace('°', ''));
+      return !isNaN(parsed);
+    }
+    return trimmed.length > 0;
+  }, [value, modalProps]);
+
+  if (!activeModal || activeModal.type !== 'valueInput' || !modalProps) return null;
+
+  const { title, label, inputType, placeholder, onConfirm, onCancel } = modalProps;
 
   const handleConfirm = () => {
     const trimmed = value.trim();
@@ -81,7 +94,7 @@ export const ValueInputModal: React.FC = () => {
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                handleConfirm();
+                if (isValid) handleConfirm();
               } else if (e.key === 'Escape') {
                 e.preventDefault();
                 handleCancel();
@@ -96,18 +109,21 @@ export const ValueInputModal: React.FC = () => {
           {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={handleCancel}
-            className="px-5 py-2 text-sm font-medium hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-            style={{ color: 'var(--gk-accent)' }}
+            className="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirm}
-            className="px-6 py-2 text-sm font-medium text-white rounded-full shadow hover:brightness-95 transition-all cursor-pointer"
-            style={{ backgroundColor: 'var(--gk-accent)' }}
+            disabled={!isValid}
+            className={`px-6 py-2 text-sm font-semibold rounded-full transition-all ${
+              isValid
+                ? 'bg-black text-white hover:bg-gray-800 cursor-pointer shadow-sm'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
           >
             OK
           </button>

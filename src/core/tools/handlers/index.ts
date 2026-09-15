@@ -8,7 +8,17 @@ import {
   polarDiameterLineTool,
   polylineTool,
 } from './lineHandlers';
-import { circleCenterPointTool, compassTool, semicircleTool } from './circleHandlers';
+import {
+  circleCenterPointTool,
+  circleCenterRadiusTool,
+  circleThreePointsTool,
+  compassTool,
+  semicircleTool,
+  circularArcTool,
+  circumcircularArcTool,
+  circularSectorTool,
+  circumcircularSectorTool,
+} from './circleHandlers';
 import {
   midpointTool,
   perpendicularTool,
@@ -43,6 +53,32 @@ import {
   sliderTool,
 } from './basicHandlers';
 import {
+  pointOnObjectTool,
+  attachDetachPointTool,
+  complexNumberTool,
+  listTool,
+} from './pointHandlers';
+import {
+  polygonTool,
+  regularPolygonTool,
+  vectorPolygonTool,
+  rigidPolygonTool,
+} from './polygonHandlers';
+import {
+  ellipseTool,
+  hyperbolaTool,
+  parabolaTool,
+  conicFivePointsTool,
+} from './conicHandlers';
+import {
+  penTool,
+  freehandShapeTool,
+  relationTool,
+  buttonTool,
+  checkBoxTool,
+  inputBoxTool,
+} from './otherHandlers';
+import {
   angleTool,
   angleGivenSizeTool,
   slopeTool,
@@ -73,8 +109,32 @@ export const allTools = [
   polarDiameterLineTool,
   polylineTool,
   circleCenterPointTool,
+  circleCenterRadiusTool,
+  circleThreePointsTool,
   compassTool,
   semicircleTool,
+  circularArcTool,
+  circumcircularArcTool,
+  circularSectorTool,
+  circumcircularSectorTool,
+  pointOnObjectTool,
+  attachDetachPointTool,
+  complexNumberTool,
+  listTool,
+  polygonTool,
+  regularPolygonTool,
+  vectorPolygonTool,
+  rigidPolygonTool,
+  ellipseTool,
+  hyperbolaTool,
+  parabolaTool,
+  conicFivePointsTool,
+  penTool,
+  freehandShapeTool,
+  relationTool,
+  buttonTool,
+  checkBoxTool,
+  inputBoxTool,
   midpointTool,
   perpendicularTool,
   perpendicularBisectorTool,
@@ -96,3 +156,4 @@ export const allTools = [
   textTool,
   imageTool,
 ];
+

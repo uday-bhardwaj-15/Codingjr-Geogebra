@@ -22,4 +22,5 @@ export interface ToolDefinition {
   clicksRequired: number;
   enabled?: boolean;
   isExpandedOnly?: boolean;
+  cursor?: string;
 }

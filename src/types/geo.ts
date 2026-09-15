@@ -5,6 +5,7 @@ export type GeoObjectType =
   | 'ray'
   | 'vector'
   | 'circle'
+  | 'conic'
   | 'polygon'
   | 'polyline'
   | 'locus'

@@ -106,9 +106,32 @@ export const moveTool: ToolHandler = {
     const { target } = activeDrag;
 
     if (target.type === 'point') {
-      cm.rawUpdateObject(target.id, {
-        value: { kind: 'free', x: pos.x, y: pos.y },
-      });
+      const currentPt = resolvePoint(target.value as any);
+      const dx = pos.x - currentPt.x;
+      const dy = pos.y - currentPt.y;
+
+      // Check if this point belongs to any rigid polygon
+      const rigidPolygons = cm.getObjects().filter(
+        (o) => o.type === 'polygon' && (o.value as any)?.isRigid && o.dependsOn.includes(target.id)
+      );
+
+      if (rigidPolygons.length > 0) {
+        for (const poly of rigidPolygons) {
+          for (const vId of poly.dependsOn) {
+            const vObj = cm.getObject(vId);
+            if (vObj && vObj.type === 'point') {
+              const pCoords = resolvePoint(vObj.value as any);
+              cm.rawUpdateObject(vId, {
+                value: { kind: 'free', x: pCoords.x + dx, y: pCoords.y + dy },
+              });
+            }
+          }
+        }
+      } else {
+        cm.rawUpdateObject(target.id, {
+          value: { kind: 'free', x: pos.x, y: pos.y },
+        });
+      }
     } else if (target.type === 'text' || target.type === 'image') {
       const val = target.value as any;
       if (!val) return;

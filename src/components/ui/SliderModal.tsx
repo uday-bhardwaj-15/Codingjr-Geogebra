@@ -120,15 +120,13 @@ export const SliderModal: React.FC = () => {
 
         <div className="mt-8 flex justify-end gap-3">
           <button
-            className="px-6 py-2 font-medium hover:bg-gray-100 rounded-full"
-            style={{ color: 'var(--gk-accent)' }}
+            className="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
             onClick={handleCancel}
           >
             Cancel
           </button>
           <button
-            className="px-6 py-2 text-white font-medium hover:brightness-95 rounded-full shadow"
-            style={{ backgroundColor: 'var(--gk-accent)' }}
+            className="px-6 py-2 text-sm font-semibold bg-black text-white hover:bg-gray-800 rounded-full shadow-sm transition-all cursor-pointer"
             onClick={handleOk}
           >
             OK
