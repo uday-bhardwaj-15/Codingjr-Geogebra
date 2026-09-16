@@ -1,65 +1,121 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { TopNavBar } from './TopNavBar';
 import { LeftIconRail } from './LeftIconRail';
 import { useUIStore } from '../../store/useUIStore';
 import { useToolStore } from '../../store/useToolStore';
+import { useViewStore } from '../../store/useViewStore';
+import { useConstructionStore } from '../../store/useConstructionStore';
 import { TOOLS } from '../tools-panel/toolsConfig';
 import { ToolsPanel } from '../tools-panel/ToolsPanel';
 import { GraphicsView } from '../graphics-view/GraphicsView';
+import { CasRowList } from '../cas-view/CasRowList';
 import { AlgebraView } from '../algebra-view/AlgebraView';
 import { TableView } from '../table-view/TableView';
 import { SpreadsheetView } from '../spreadsheet-view/SpreadsheetView';
+import { DistributionCanvas } from '../probability-view/DistributionCanvas';
+import { DistributionPanel } from '../probability-view/DistributionPanel';
+import { DistributionViewControls } from '../probability-view/DistributionViewControls';
 import { SliderModal } from '../ui/SliderModal';
 import { AlertModal } from '../ui/AlertModal';
 import { ValueInputModal } from '../ui/ValueInputModal';
+import { MathKeyboard } from '../ui/MathKeyboard';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { AppId, APPS } from '../../config/appConfig';
 
-export const CalculatorShell: React.FC = () => {
-  const { toolsPanelOpen, activeLeftTab } = useUIStore();
+interface CalculatorShellProps {
+  appId?: AppId;
+}
+
+export const CalculatorShell: React.FC<CalculatorShellProps> = ({ appId = 'graphing' }) => {
+  const { toolsPanelOpen, activeLeftTab, setActiveLeftTab } = useUIStore();
+  const { switchApp } = useConstructionStore();
+  const { initForApp } = useViewStore();
   useKeyboardShortcuts();
+
+  const config = APPS[appId] || APPS.graphing;
+
+  // Initialize and synchronize state for active app
+  useEffect(() => {
+    switchApp(appId);
+    initForApp(config.defaultAxesVisible ?? true);
+
+    // If current tab is not valid for this app, reset to first available tab
+    if (!config.leftRailTabs.includes(activeLeftTab)) {
+      setActiveLeftTab(config.leftRailTabs[0]);
+    }
+  }, [appId, config, switchApp, initForApp, activeLeftTab, setActiveLeftTab]);
 
   return (
     <div className="flex flex-col w-screen h-screen overflow-hidden bg-white select-none">
-      <TopNavBar />
+      <TopNavBar appId={appId} />
 
       <div className="flex flex-1 overflow-hidden relative">
-        <LeftIconRail />
+        <LeftIconRail appId={appId} />
 
-        {/* Flyout Sidebar Panel */}
-        {toolsPanelOpen && (
-          <div className="flex-shrink-0 h-full overflow-hidden bg-white border-r border-[#e0e0e0]">
-            {activeLeftTab === 'tools' && <ToolsPanel />}
-            {activeLeftTab === 'algebra' && (
-              <div className="w-80 h-full bg-white overflow-y-auto">
-                <AlgebraView />
+        {/* 1. App with Graphics Canvas (Graphing, Geometry & CAS) */}
+        {config.hasCanvas && (
+          <>
+            {/* Flyout Sidebar Panel */}
+            {toolsPanelOpen && (
+              <div className="flex-shrink-0 h-full overflow-hidden bg-white border-r border-[#e0e0e0]">
+                {activeLeftTab === 'tools' && <ToolsPanel appId={appId} />}
+                {activeLeftTab === 'algebra' && (
+                  appId === 'cas' ? (
+                    <CasRowList />
+                  ) : (
+                    <div className="w-80 h-full bg-white overflow-y-auto">
+                      <AlgebraView variant="sidebar" />
+                    </div>
+                  )
+                )}
+                {activeLeftTab === 'table' && (
+                  <div className="w-80 h-full bg-white overflow-y-auto">
+                    <TableView variant="sidebar" />
+                  </div>
+                )}
+                {activeLeftTab === 'spreadsheet' && (
+                  <div className="w-80 h-full bg-white overflow-y-auto">
+                    <SpreadsheetView />
+                  </div>
+                )}
               </div>
             )}
-            {activeLeftTab === 'table' && (
-              <div className="w-80 h-full bg-white overflow-y-auto">
-                <TableView />
-              </div>
-            )}
-            {activeLeftTab === 'spreadsheet' && (
-              <div className="w-80 h-full bg-white overflow-y-auto">
-                <SpreadsheetView />
-              </div>
-            )}
+
+            {/* Main Graphics Canvas Area */}
+            <GraphicsView />
+          </>
+        )}
+
+        {/* 2. Probability App (Left Distribution Panel + Main Bell Curve Canvas) */}
+        {appId === 'probability' && (
+          <div className="flex flex-1 h-full overflow-hidden relative">
+            {toolsPanelOpen && <DistributionPanel />}
+            <div className="flex-1 h-full relative overflow-hidden bg-white">
+              <DistributionCanvas />
+              <DistributionViewControls />
+            </div>
           </div>
         )}
 
-        {/* Main Canvas Area */}
-        <GraphicsView />
+        {/* 3. Scientific Calculator App (Full-Page Algebra or Table View) */}
+        {appId === 'scientific' && (
+          <div className="flex-1 h-full overflow-hidden bg-white">
+            {activeLeftTab === 'algebra' && <AlgebraView variant="fullpage" />}
+            {activeLeftTab === 'table' && <TableView variant="fullpage" />}
+          </div>
+        )}
 
-        {/* Modals */}
+        {/* Modals & Keyboard */}
         <SliderModal />
         <AlertModal />
         <ValueInputModal />
+        <MathKeyboard />
       </div>
 
-      {/* Subtle Tool Guidance Bar at bottom */}
-      <BottomTooltip />
+      {/* Tool Guidance Bar for Canvas Apps */}
+      {config.hasCanvas && <BottomTooltip />}
     </div>
   );
 };
@@ -76,4 +132,3 @@ const BottomTooltip: React.FC = () => {
     </div>
   );
 };
-

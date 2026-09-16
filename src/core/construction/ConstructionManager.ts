@@ -84,6 +84,24 @@ export class ConstructionManager {
     return this.objects.get(id);
   }
 
+  public loadObjects(objs: GeoObject[]): void {
+    this.objects.clear();
+    this.commandStack.clear();
+    for (const obj of objs) {
+      this.objects.set(obj.id, obj);
+    }
+    for (const obj of objs) {
+      this.recomputeObject(obj.id);
+    }
+    this.notify();
+  }
+
+  public clearAll(): void {
+    this.objects.clear();
+    this.commandStack.clear();
+    this.notify();
+  }
+
   // --- Low-level raw mutations ---
 
   public rawAddObject(obj: GeoObject): void {

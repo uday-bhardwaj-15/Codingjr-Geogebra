@@ -25,14 +25,14 @@ export type ActiveModal =
 export interface UIState {
   toolsPanelOpen: boolean;
   toolsExpanded: boolean;
-  activeLeftTab: 'algebra' | 'tools' | 'table' | 'spreadsheet';
+  activeLeftTab: 'algebra' | 'tools' | 'table' | 'spreadsheet' | 'distribution';
   currentMouseWorld: PointCoords | null;
   sliderModalPos: PointCoords | null;
   activeModal: ActiveModal;
   toggleToolsPanel: () => void;
   toggleToolsExpanded: () => void;
   setToolsPanelOpen: (open: boolean) => void;
-  setActiveLeftTab: (tab: 'algebra' | 'tools' | 'table' | 'spreadsheet') => void;
+  setActiveLeftTab: (tab: 'algebra' | 'tools' | 'table' | 'spreadsheet' | 'distribution') => void;
   setCurrentMouseWorld: (pos: PointCoords | null) => void;
   openSliderModal: (pos: PointCoords) => void;
   closeSliderModal: () => void;

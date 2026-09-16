@@ -111,141 +111,148 @@ export const CanvasSurface: React.FC = () => {
         return parseFloat(str).toString();
       };
 
-      // 1. Draw Minor Grid Lines
-      ctx.strokeStyle = '#f5f5f5';
-      ctx.lineWidth = 0.8;
-      ctx.beginPath();
-      const minMinorX = Math.floor(viewport.xMin / minorStep) * minorStep;
-      const maxMinorX = Math.ceil(viewport.xMax / minorStep) * minorStep;
-      for (let x = minMinorX; x <= maxMinorX; x += minorStep) {
-        const pt = worldToScreen(x, 0, w, h, viewport);
-        ctx.moveTo(Math.round(pt.x) + 0.5, 0);
-        ctx.lineTo(Math.round(pt.x) + 0.5, h);
-      }
-      const minMinorY = Math.floor(viewport.yMin / minorStep) * minorStep;
-      const maxMinorY = Math.ceil(viewport.yMax / minorStep) * minorStep;
-      for (let y = minMinorY; y <= maxMinorY; y += minorStep) {
-        const pt = worldToScreen(0, y, w, h, viewport);
-        ctx.moveTo(0, Math.round(pt.y) + 0.5);
-        ctx.lineTo(w, Math.round(pt.y) + 0.5);
-      }
-      ctx.stroke();
-
-      // 2. Draw Major Grid Lines
-      ctx.strokeStyle = '#e0e0e0';
-      ctx.lineWidth = 1.0;
-      ctx.beginPath();
+      const showAxes = useViewStore.getState().showAxes;
+      const showGrid = useViewStore.getState().showGrid;
       const minMajorX = Math.floor(viewport.xMin / majorStep) * majorStep;
       const maxMajorX = Math.ceil(viewport.xMax / majorStep) * majorStep;
-      for (let x = minMajorX; x <= maxMajorX; x += majorStep) {
-        const pt = worldToScreen(x, 0, w, h, viewport);
-        ctx.moveTo(Math.round(pt.x) + 0.5, 0);
-        ctx.lineTo(Math.round(pt.x) + 0.5, h);
-      }
       const minMajorY = Math.floor(viewport.yMin / majorStep) * majorStep;
       const maxMajorY = Math.ceil(viewport.yMax / majorStep) * majorStep;
-      for (let y = minMajorY; y <= maxMajorY; y += majorStep) {
-        const pt = worldToScreen(0, y, w, h, viewport);
-        ctx.moveTo(0, Math.round(pt.y) + 0.5);
-        ctx.lineTo(w, Math.round(pt.y) + 0.5);
+
+      // 1. Draw Minor Grid Lines
+      if (showGrid) {
+        ctx.strokeStyle = '#f5f5f5';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        const minMinorX = Math.floor(viewport.xMin / minorStep) * minorStep;
+        const maxMinorX = Math.ceil(viewport.xMax / minorStep) * minorStep;
+        for (let x = minMinorX; x <= maxMinorX; x += minorStep) {
+          const pt = worldToScreen(x, 0, w, h, viewport);
+          ctx.moveTo(Math.round(pt.x) + 0.5, 0);
+          ctx.lineTo(Math.round(pt.x) + 0.5, h);
+        }
+        const minMinorY = Math.floor(viewport.yMin / minorStep) * minorStep;
+        const maxMinorY = Math.ceil(viewport.yMax / minorStep) * minorStep;
+        for (let y = minMinorY; y <= maxMinorY; y += minorStep) {
+          const pt = worldToScreen(0, y, w, h, viewport);
+          ctx.moveTo(0, Math.round(pt.y) + 0.5);
+          ctx.lineTo(w, Math.round(pt.y) + 0.5);
+        }
+        ctx.stroke();
+
+        // 2. Draw Major Grid Lines
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        for (let x = minMajorX; x <= maxMajorX; x += majorStep) {
+          const pt = worldToScreen(x, 0, w, h, viewport);
+          ctx.moveTo(Math.round(pt.x) + 0.5, 0);
+          ctx.lineTo(Math.round(pt.x) + 0.5, h);
+        }
+        for (let y = minMajorY; y <= maxMajorY; y += majorStep) {
+          const pt = worldToScreen(0, y, w, h, viewport);
+          ctx.moveTo(0, Math.round(pt.y) + 0.5);
+          ctx.lineTo(w, Math.round(pt.y) + 0.5);
+        }
+        ctx.stroke();
       }
-      ctx.stroke();
 
       // 3. Draw Axes with Arrows and Labels
-      const origin = worldToScreen(0, 0, w, h, viewport);
-      const axisColor = '#666666'; // GeoGebra sharp neutral axis color
-      ctx.strokeStyle = axisColor;
-      ctx.fillStyle = axisColor;
-      ctx.lineWidth = 1.2;
+      if (showAxes) {
+        const origin = worldToScreen(0, 0, w, h, viewport);
+        const axisColor = '#666666'; // GeoGebra sharp neutral axis color
+        ctx.strokeStyle = axisColor;
+        ctx.fillStyle = axisColor;
+        ctx.lineWidth = 1.2;
 
-      const isXOnScreen = origin.y >= 0 && origin.y <= h;
-      const isYOnScreen = origin.x >= 0 && origin.x <= w;
-      const axisY = Math.max(15, Math.min(h - 20, origin.y));
-      const axisX = Math.max(30, Math.min(w - 20, origin.x));
+        const isXOnScreen = origin.y >= 0 && origin.y <= h;
+        const isYOnScreen = origin.x >= 0 && origin.x <= w;
+        const axisY = Math.max(15, Math.min(h - 20, origin.y));
+        const axisX = Math.max(30, Math.min(w - 20, origin.x));
 
-      // X-Axis Line
-      if (isXOnScreen) {
-        ctx.beginPath();
-        ctx.moveTo(0, origin.y);
-        ctx.lineTo(w, origin.y);
-        ctx.stroke();
-
-        // Right Arrowhead (positive X)
-        ctx.beginPath();
-        ctx.moveTo(w - 2, origin.y);
-        ctx.lineTo(w - 10, origin.y - 4);
-        ctx.lineTo(w - 10, origin.y + 4);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      // Y-Axis Line
-      if (isYOnScreen) {
-        ctx.beginPath();
-        ctx.moveTo(origin.x, h);
-        ctx.lineTo(origin.x, 0);
-        ctx.stroke();
-
-        // Top Arrowhead (positive Y)
-        ctx.beginPath();
-        ctx.moveTo(origin.x, 2);
-        ctx.lineTo(origin.x - 4, 10);
-        ctx.lineTo(origin.x + 4, 10);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      // 4. Draw Axis Number Labels & Ticks
-      ctx.font = '500 11px Arial, Inter, -apple-system, sans-serif';
-      ctx.fillStyle = '#666666';
-      ctx.strokeStyle = '#666666';
-      ctx.lineWidth = 1;
-
-      // X-Axis Numbers & Ticks
-      for (let x = minMajorX; x <= maxMajorX; x += majorStep) {
-        if (Math.abs(x) < 1e-9) continue; // Skip origin here, drawn separately
-        const pt = worldToScreen(x, 0, w, h, viewport);
-        if (pt.x < 25 || pt.x > w - 25) continue;
-
-        // Tick
+        // X-Axis Line
         if (isXOnScreen) {
           ctx.beginPath();
-          ctx.moveTo(Math.round(pt.x) + 0.5, origin.y - 3);
-          ctx.lineTo(Math.round(pt.x) + 0.5, origin.y + 3);
+          ctx.moveTo(0, origin.y);
+          ctx.lineTo(w, origin.y);
           ctx.stroke();
+
+          // Right Arrowhead (positive X)
+          ctx.beginPath();
+          ctx.moveTo(w - 2, origin.y);
+          ctx.lineTo(w - 10, origin.y - 4);
+          ctx.lineTo(w - 10, origin.y + 4);
+          ctx.closePath();
+          ctx.fill();
         }
 
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        const labelY = isXOnScreen ? Math.min(h - 16, origin.y + 5) : (axisY > h / 2 ? h - 18 : 6);
-        ctx.fillText(formatNumber(x), pt.x, labelY);
-      }
-
-      // Y-Axis Numbers & Ticks
-      for (let y = minMajorY; y <= maxMajorY; y += majorStep) {
-        if (Math.abs(y) < 1e-9) continue; // Skip origin
-        const pt = worldToScreen(0, y, w, h, viewport);
-        if (pt.y < 25 || pt.y > h - 25) continue;
-
-        // Tick
+        // Y-Axis Line
         if (isYOnScreen) {
           ctx.beginPath();
-          ctx.moveTo(origin.x - 3, Math.round(pt.y) + 0.5);
-          ctx.lineTo(origin.x + 3, Math.round(pt.y) + 0.5);
+          ctx.moveTo(origin.x, h);
+          ctx.lineTo(origin.x, 0);
           ctx.stroke();
+
+          // Top Arrowhead (positive Y)
+          ctx.beginPath();
+          ctx.moveTo(origin.x, 2);
+          ctx.lineTo(origin.x - 4, 10);
+          ctx.lineTo(origin.x + 4, 10);
+          ctx.closePath();
+          ctx.fill();
         }
 
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        const labelX = isYOnScreen ? Math.max(22, origin.x - 6) : (axisX > w / 2 ? w - 8 : 24);
-        ctx.fillText(formatNumber(y), labelX, pt.y);
-      }
+        // 4. Draw Axis Number Labels & Ticks
+        ctx.font = '500 11px Arial, Inter, -apple-system, sans-serif';
+        ctx.fillStyle = '#666666';
+        ctx.strokeStyle = '#666666';
+        ctx.lineWidth = 1;
 
-      // Origin '0'
-      if (isXOnScreen && isYOnScreen) {
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'top';
-        ctx.fillText('0', origin.x - 5, origin.y + 4);
+        // X-Axis Numbers & Ticks
+        for (let x = minMajorX; x <= maxMajorX; x += majorStep) {
+          if (Math.abs(x) < 1e-9) continue; // Skip origin here, drawn separately
+          const pt = worldToScreen(x, 0, w, h, viewport);
+          if (pt.x < 25 || pt.x > w - 25) continue;
+
+          // Tick
+          if (isXOnScreen) {
+            ctx.beginPath();
+            ctx.moveTo(Math.round(pt.x) + 0.5, origin.y - 3);
+            ctx.lineTo(Math.round(pt.x) + 0.5, origin.y + 3);
+            ctx.stroke();
+          }
+
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          const labelY = isXOnScreen ? Math.min(h - 16, origin.y + 5) : (axisY > h / 2 ? h - 18 : 6);
+          ctx.fillText(formatNumber(x), pt.x, labelY);
+        }
+
+        // Y-Axis Numbers & Ticks
+        for (let y = minMajorY; y <= maxMajorY; y += majorStep) {
+          if (Math.abs(y) < 1e-9) continue; // Skip origin
+          const pt = worldToScreen(0, y, w, h, viewport);
+          if (pt.y < 25 || pt.y > h - 25) continue;
+
+          // Tick
+          if (isYOnScreen) {
+            ctx.beginPath();
+            ctx.moveTo(origin.x - 3, Math.round(pt.y) + 0.5);
+            ctx.lineTo(origin.x + 3, Math.round(pt.y) + 0.5);
+            ctx.stroke();
+          }
+
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          const labelX = isYOnScreen ? Math.max(22, origin.x - 6) : (axisX > w / 2 ? w - 8 : 24);
+          ctx.fillText(formatNumber(y), labelX, pt.y);
+        }
+
+        // Origin '0'
+        if (isXOnScreen && isYOnScreen) {
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'top';
+          ctx.fillText('0', origin.x - 5, origin.y + 4);
+        }
       }
 
       // 3. Draw Geometry Objects

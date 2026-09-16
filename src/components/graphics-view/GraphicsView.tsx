@@ -8,7 +8,9 @@ import { useViewStore } from '../../store/useViewStore';
 
 export const GraphicsView: React.FC = () => {
   const { undo, redo, canUndo, canRedo } = useConstructionStore();
-  const { viewport, setViewport, zoom } = useViewStore();
+  const { viewport, setViewport, zoom, showAxes, showGrid, toggleAxes, toggleGrid } = useViewStore();
+  const [showSettingsMenu, setShowSettingsMenu] = React.useState(false);
+  const [showGridMenu, setShowGridMenu] = React.useState(false);
 
   const handleZoomIn = () => {
     const centerX = (viewport.xMin + viewport.xMax) / 2;
@@ -69,11 +71,35 @@ export const GraphicsView: React.FC = () => {
       {/* Top-Right Floating Settings Gear */}
       <div className="absolute top-3 right-3 z-10 select-none">
         <button
+          onClick={() => setShowSettingsMenu(!showSettingsMenu)}
           title="Settings"
           className="p-1.5 hover:bg-gray-200/80 rounded-full text-[#5f6368] hover:text-[#202124] transition-colors cursor-pointer"
         >
           <Settings className="w-5 h-5 stroke-[2.2]" />
         </button>
+
+        {showSettingsMenu && (
+          <div className="absolute right-0 mt-2 w-48 bg-white border border-[#dadce0] rounded-xl shadow-lg p-2 text-xs text-[#3c4043] z-50">
+            <label className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showAxes}
+                onChange={toggleAxes}
+                className="accent-[#6557d2] rounded"
+              />
+              <span>Show Axes</span>
+            </label>
+            <label className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showGrid}
+                onChange={toggleGrid}
+                className="accent-[#6557d2] rounded"
+              />
+              <span>Show Grid</span>
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Bottom-Right Floating Zoom & View controls pill */}
@@ -86,15 +112,44 @@ export const GraphicsView: React.FC = () => {
           <Home className="w-4.5 h-4.5 stroke-[2]" />
         </button>
         <div className="w-4 h-px bg-[#e0e0e0]" />
-        <button
-          onClick={() => {}}
-          title="Toggle Grid / Axes"
-          className="p-2 hover:bg-gray-100 rounded-lg text-[#5f6368] hover:text-[#202124] transition-colors cursor-pointer"
-        >
-          <svg className="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM10 7H8v3h2V7zm0 4H8v3h2v-3zm0 4H8v3h2v-3zm6-8h-2v3h2V7zm0 4h-2v3h2v-3zm0 4h-2v3h2v-3z" />
-          </svg>
-        </button>
+        
+        <div className="relative">
+          <button
+            onClick={() => setShowGridMenu(!showGridMenu)}
+            title="Toggle Grid / Axes"
+            className={`p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer ${
+              showAxes || showGrid ? 'text-[#6557d2]' : 'text-[#5f6368]'
+            }`}
+          >
+            <svg className="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM10 7H8v3h2V7zm0 4H8v3h2v-3zm0 4H8v3h2v-3zm6-8h-2v3h2V7zm0 4h-2v3h2v-3zm0 4h-2v3h2v-3z" />
+            </svg>
+          </button>
+
+          {showGridMenu && (
+            <div className="absolute right-full bottom-0 mr-2 w-44 bg-white border border-[#dadce0] rounded-xl shadow-lg p-2 text-xs text-[#3c4043] z-50">
+              <label className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showAxes}
+                  onChange={toggleAxes}
+                  className="accent-[#6557d2] rounded"
+                />
+                <span>Show Axes</span>
+              </label>
+              <label className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showGrid}
+                  onChange={toggleGrid}
+                  className="accent-[#6557d2] rounded"
+                />
+                <span>Show Grid</span>
+              </label>
+            </div>
+          )}
+        </div>
+
         <div className="w-4 h-px bg-[#e0e0e0]" />
         <button
           onClick={handleZoomIn}

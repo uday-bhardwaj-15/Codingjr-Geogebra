@@ -21,16 +21,7 @@ function parsePointInput(input: string): { x: number; y: number } | null {
   return null;
 }
 
-export const FormattedLabel: React.FC<{ label: string }> = ({ label }) => {
-  const parts = label.split('_');
-  if (parts.length <= 1) return <span>{label}</span>;
-  return (
-    <span>
-      {parts[0]}
-      <sub className="text-[0.75em] leading-none">{parts.slice(1).join('_')}</sub>
-    </span>
-  );
-};
+import { FormattedLabel } from '../ui/FormattedMath';
 
 const ItemContent: React.FC<{ obj: GeoObject }> = ({ obj }) => {
   const { updateObject } = useConstructionStore();

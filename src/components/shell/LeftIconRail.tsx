@@ -1,11 +1,19 @@
+'use client';
+
 import React from 'react';
 import { useUIStore } from '../../store/useUIStore';
+import { AppId, APPS } from '../../config/appConfig';
 import { clsx } from 'clsx';
 
-export const LeftIconRail: React.FC = () => {
-  const { activeLeftTab, setActiveLeftTab, toggleToolsPanel, toolsPanelOpen } = useUIStore();
+interface LeftIconRailProps {
+  appId?: AppId;
+}
 
-  const handleTabClick = (tab: 'algebra' | 'tools' | 'table' | 'spreadsheet') => {
+export const LeftIconRail: React.FC<LeftIconRailProps> = ({ appId = 'graphing' }) => {
+  const { activeLeftTab, setActiveLeftTab, toggleToolsPanel, toolsPanelOpen } = useUIStore();
+  const config = APPS[appId] || APPS.graphing;
+
+  const handleTabClick = (tab: 'algebra' | 'tools' | 'table' | 'spreadsheet' | 'distribution') => {
     if (activeLeftTab === tab) {
       toggleToolsPanel();
     } else {
@@ -14,7 +22,7 @@ export const LeftIconRail: React.FC = () => {
     }
   };
 
-  const tabs = [
+  const allTabs = [
     {
       id: 'algebra',
       label: 'Algebra',
@@ -55,11 +63,25 @@ export const LeftIconRail: React.FC = () => {
         </svg>
       ),
     },
+    {
+      id: 'distribution',
+      label: 'Distribution',
+      isActive: activeLeftTab === 'distribution' && toolsPanelOpen,
+      icon: (
+        <svg className="w-5 h-5 fill-current stroke-current" viewBox="0 0 24 24" fill="none">
+          <path d="M2 20h20M4 20c4-1 6-16 8-16s4 15 8 16" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
   ] as const;
+
+  const visibleTabs = allTabs.filter((tab) =>
+    config.leftRailTabs.includes(tab.id as any)
+  );
 
   return (
     <aside className="w-14 bg-white border-r border-[#e0e0e0] flex flex-col items-center py-2 shrink-0 z-20 select-none">
-      {tabs.map((tab) => {
+      {visibleTabs.map((tab) => {
         const isActive = tab.isActive;
         return (
           <button
@@ -90,5 +112,3 @@ export const LeftIconRail: React.FC = () => {
     </aside>
   );
 };
-
-
