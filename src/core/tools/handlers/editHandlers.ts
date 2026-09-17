@@ -91,3 +91,29 @@ export const showHideLabelTool: ToolHandler = {
     }
   },
 };
+
+let copiedStyle: GeoObject['style'] | null = null;
+
+export const copyVisualStyleTool: ToolHandler = {
+  id: 'copy-visual-style',
+  name: 'Copy Visual Style',
+  instruction: 'Select sample object, then click on other objects',
+  clicksRequired: 0,
+  onPointerDown: (_pos, target, cm) => {
+    if (!target || !cm) return;
+    if (!copiedStyle) {
+      copiedStyle = target.style ? { ...target.style } : { color: '#1565ef', thickness: 2, opacity: 1 };
+    } else {
+      cm.updateObject(target.id, {
+        style: {
+          ...target.style,
+          ...copiedStyle,
+        },
+      });
+    }
+  },
+  reset: () => {
+    copiedStyle = null;
+  },
+};
+

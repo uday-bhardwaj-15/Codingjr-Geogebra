@@ -261,17 +261,19 @@ const ItemContent: React.FC<{ obj: GeoObject }> = ({ obj }) => {
 export const AlgebraListItem: React.FC<{ obj: GeoObject }> = ({ obj }) => {
   const { toggleVisibility, removeObject } = useConstructionStore();
 
+  const color = obj.style?.color || (obj as any).color || '#1e88e5';
+
   return (
     <div className="flex items-center gap-3 p-3 border-b border-[var(--gk-border)] hover:bg-gray-50 group">
       <button
         onClick={() => toggleVisibility([obj.id])}
         title={obj.visible ? 'Hide object' : 'Show object'}
         className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 shadow-sm bg-white shrink-0 hover:scale-105 transition-transform"
-        style={{ borderColor: obj.style.color }}
+        style={{ borderColor: color }}
       >
         <div
           className={clsx('w-3 h-3 rounded-full', !obj.visible && 'bg-transparent border')}
-          style={{ backgroundColor: obj.visible ? obj.style.color : 'transparent', borderColor: obj.style.color }}
+          style={{ backgroundColor: obj.visible ? color : 'transparent', borderColor: color }}
         />
       </button>
 

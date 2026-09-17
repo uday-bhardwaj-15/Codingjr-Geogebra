@@ -6,10 +6,15 @@ export type ToolCategory =
   | 'transform'
   | 'construct'
   | 'lines'
+  | 'lines-and-polygons'
   | 'circles'
   | 'points'
   | 'polygons'
   | 'conics'
+  | 'curves'
+  | 'planes'
+  | 'solids'
+  | 'special-lines'
   | 'others';
 
 export interface ToolDefinition {

@@ -44,7 +44,7 @@ export const TOOLS: ToolDefinition[] = [
   { id: 'show-hide-label',   legacyMode: 28, label: 'Show / Hide Label', description: 'Select object',                                              category: 'edit',  icon: 'show-hide-label',   clicksRequired: 1, enabled: true },
   { id: 'show-hide-object',  legacyMode: 27, label: 'Show / Hide Object',description: 'Select objects to hide, then switch to another tool',        category: 'edit',  icon: 'show-hide-object',  clicksRequired: 1, enabled: true },
   // Expanded Edit
-  { id: 'copy-visual-style', legacyMode: 35, label: 'Copy Visual Style', description: 'Select sample object, then click on other objects',        category: 'edit',  icon: 'copy-visual-style', clicksRequired: 2, enabled: false, isExpandedOnly: true },
+  { id: 'copy-visual-style', legacyMode: 35, label: 'Copy Visual Style', description: 'Select sample object, then click on other objects',        category: 'edit',  icon: 'copy-visual-style', clicksRequired: 0, enabled: true, isExpandedOnly: true },
 
   // ==================== Media ====================
   { id: 'image',             legacyMode: 26, label: 'Image',             description: 'Select image from files',                                   category: 'media', icon: 'image',             clicksRequired: 1, enabled: true },

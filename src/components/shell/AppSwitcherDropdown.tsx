@@ -29,6 +29,8 @@ export const AppSwitcherDropdown: React.FC<AppSwitcherDropdownProps> = ({ curren
       ? 'scientific'
       : pathname?.includes('cas')
       ? 'cas'
+      : pathname?.includes('3d')
+      ? '3d'
       : 'graphing');
 
   const currentApp = APPS[activeAppId] || APPS.graphing;
@@ -83,6 +85,13 @@ export const AppSwitcherDropdown: React.FC<AppSwitcherDropdownProps> = ({ curren
         return (
           <svg className={clsx(className, 'text-[#d81b60] stroke-[2.2]')} viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M4 6h16M4 12h10M4 18h16M18 10l3 3-3 3" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        );
+      case '3d':
+        return (
+          <svg className={clsx(className, 'text-[#7b1fa2] stroke-[2.2]')} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="m12 3-8 4.5v9L12 21l8-4.5v-9L12 3z" strokeWidth="2.2" strokeLinejoin="round" />
+            <path d="M12 12 4 7.5M12 12v9M12 12l8-4.5" strokeWidth="2" />
           </svg>
         );
     }

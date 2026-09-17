@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { useProbabilityStore, IntervalMode } from '../../store/useProbabilityStore';
-import { AVAILABLE_DISTRIBUTIONS } from '../../core/probability/distributions';
+import { useProbabilityStore } from '../../store/useProbabilityStore';
+import { AVAILABLE_DISTRIBUTIONS, DISTRIBUTIONS, normalDistribution } from '../../core/probability/distributions';
 import { useRegisterMathInput } from '../../hooks/useActiveMathInput';
 import { clsx } from 'clsx';
 
@@ -21,33 +21,10 @@ export const DistributionPanel: React.FC = () => {
     getProbability,
   } = useProbabilityStore();
 
-  const meanRef = useRef<HTMLInputElement>(null);
-  const stdRef = useRef<HTMLInputElement>(null);
   const lowerRef = useRef<HTMLInputElement>(null);
   const upperRef = useRef<HTMLInputElement>(null);
 
-  const mean = params.mean ?? 0;
-  const stdDev = params.stdDev ?? 1;
-
-  const meanInput = useRegisterMathInput(
-    'prob-mean',
-    String(mean),
-    (val) => {
-      const num = parseFloat(val);
-      if (!isNaN(num)) setParam('mean', num);
-    },
-    meanRef
-  );
-
-  const stdInput = useRegisterMathInput(
-    'prob-std',
-    String(stdDev),
-    (val) => {
-      const num = parseFloat(val);
-      if (!isNaN(num) && num > 0) setParam('stdDev', num);
-    },
-    stdRef
-  );
+  const currentDist = DISTRIBUTIONS[distributionType] || normalDistribution;
 
   const lowerInput = useRegisterMathInput(
     'prob-lower',
@@ -81,54 +58,42 @@ export const DistributionPanel: React.FC = () => {
         <select
           value={distributionType}
           onChange={(e) => setDistributionType(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-white border border-[#dadce0] rounded-lg text-[#202124] focus:border-[#6557d2] focus:ring-1 focus:ring-[#6557d2] outline-none cursor-pointer"
+          className="w-full px-3 py-2 text-sm bg-white border border-[#dadce0] rounded-lg text-[#202124] focus:border-[#6557d2] focus:ring-1 focus:ring-[#6557d2] outline-none cursor-pointer font-medium"
         >
           {AVAILABLE_DISTRIBUTIONS.map((d) => (
-            <option key={d.id} value={d.id} disabled={!d.enabled}>
+            <option key={d.id} value={d.id}>
               {d.name}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Distribution Parameters */}
+      {/* Distribution Parameters (Dynamic based on distributionType) */}
       <div className="mb-5 bg-gray-50 border border-[#e8eaed] rounded-xl p-3">
         <span className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider block mb-2">
           Parameters
         </span>
         <div className="space-y-2.5">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-medium text-[#202124] w-12 font-serif italic">μ (Mean)</span>
-            <input
-              ref={meanRef}
-              type="number"
-              step="any"
-              value={mean}
-              onFocus={meanInput.onFocus}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                setParam('mean', isNaN(val) ? 0 : val);
-              }}
-              className="flex-1 px-2.5 py-1.5 text-sm bg-white border border-[#dadce0] rounded-md text-right font-mono focus:border-[#6557d2] outline-none"
-            />
-          </div>
-
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-medium text-[#202124] w-12 font-serif italic">σ (StdDev)</span>
-            <input
-              ref={stdRef}
-              type="number"
-              step="any"
-              min="0.001"
-              value={stdDev}
-              onFocus={stdInput.onFocus}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                if (!isNaN(val) && val > 0) setParam('stdDev', val);
-              }}
-              className="flex-1 px-2.5 py-1.5 text-sm bg-white border border-[#dadce0] rounded-md text-right font-mono focus:border-[#6557d2] outline-none"
-            />
-          </div>
+          {Object.entries(currentDist.paramLabels).map(([key, label]) => {
+            const currentVal = params[key] ?? currentDist.defaultParams[key] ?? 0;
+            return (
+              <div key={key} className="flex items-center justify-between gap-3">
+                <span className="text-xs font-medium text-[#202124] min-w-16 font-sans">
+                  {label}
+                </span>
+                <input
+                  type="number"
+                  step="any"
+                  value={currentVal}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val)) setParam(key, val);
+                  }}
+                  className="flex-1 px-2.5 py-1.5 text-sm bg-white border border-[#dadce0] rounded-md text-right font-mono focus:border-[#6557d2] outline-none"
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -183,7 +148,7 @@ export const DistributionPanel: React.FC = () => {
             <input
               ref={lowerRef}
               type="number"
-              step="any"
+              step={currentDist.isDiscrete ? '1' : 'any'}
               value={lowerBound}
               onFocus={lowerInput.onFocus}
               onChange={(e) => {
@@ -201,7 +166,7 @@ export const DistributionPanel: React.FC = () => {
             <input
               ref={upperRef}
               type="number"
-              step="any"
+              step={currentDist.isDiscrete ? '1' : 'any'}
               value={upperBound}
               onFocus={upperInput.onFocus}
               onChange={(e) => {
@@ -223,9 +188,9 @@ export const DistributionPanel: React.FC = () => {
           {probValue.toFixed(4)}
         </div>
         <div className="text-xs text-[#5f6368] mt-1 font-mono">
-          {intervalMode === 'interval' && `P(${lowerBound.toFixed(2)} ≤ X ≤ ${upperBound.toFixed(2)})`}
-          {intervalMode === 'left' && `P(X ≤ ${upperBound.toFixed(2)})`}
-          {intervalMode === 'right' && `P(X ≥ ${lowerBound.toFixed(2)})`}
+          {intervalMode === 'interval' && `P(${lowerBound} ≤ X ≤ ${upperBound})`}
+          {intervalMode === 'left' && `P(X ≤ ${upperBound})`}
+          {intervalMode === 'right' && `P(X ≥ ${lowerBound})`}
           {` = ${(probValue * 100).toFixed(2)}%`}
         </div>
       </div>

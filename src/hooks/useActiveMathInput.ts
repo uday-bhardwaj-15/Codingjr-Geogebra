@@ -5,6 +5,7 @@ export interface ActiveMathInputTarget {
   insertText: (text: string) => void;
   backspace: () => void;
   focus?: () => void;
+  submit?: () => void;
 }
 
 interface MathInputState {
@@ -15,6 +16,7 @@ interface MathInputState {
   setKeyboardOpen: (open: boolean) => void;
   insertToken: (token: string) => void;
   handleBackspace: () => void;
+  handleSubmit: () => void;
 }
 
 export const useActiveMathInputStore = create<MathInputState>((set, get) => ({
@@ -37,6 +39,15 @@ export const useActiveMathInputStore = create<MathInputState>((set, get) => ({
       target.focus?.();
     }
   },
+  handleSubmit: () => {
+    const target = get().activeTarget;
+    if (target) {
+      if (target.submit) {
+        target.submit();
+      }
+      target.focus?.();
+    }
+  },
 }));
 
 /**
@@ -47,7 +58,8 @@ export function useRegisterMathInput(
   id: string,
   value: string,
   setValue: (val: string) => void,
-  inputRef?: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>
+  inputRef?: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>,
+  onSubmit?: () => void
 ) {
   const setActiveTarget = useActiveMathInputStore((s) => s.setActiveTarget);
 
@@ -99,6 +111,7 @@ export function useRegisterMathInput(
       focus: () => {
         inputRef?.current?.focus();
       },
+      submit: onSubmit,
     });
   };
 

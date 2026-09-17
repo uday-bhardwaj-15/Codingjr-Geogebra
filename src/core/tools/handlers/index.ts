@@ -42,6 +42,7 @@ import {
   showHideLabelTool,
   moveGraphicsViewTool,
   selectObjectsTool,
+  copyVisualStyleTool,
 } from './editHandlers';
 import {
   pointTool,
@@ -97,6 +98,7 @@ export const allTools = [
   bestFitLineTool,
   selectObjectsTool,
   moveGraphicsViewTool,
+  copyVisualStyleTool,
   deleteTool,
   showHideObjectTool,
   showHideLabelTool,

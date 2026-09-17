@@ -28,6 +28,8 @@ export const useProbabilityStore = create<ProbabilityState>((set, get) => ({
     set({
       distributionType: type,
       params: { ...dist.defaultParams },
+      lowerBound: dist.defaultBounds.lower,
+      upperBound: dist.defaultBounds.upper,
     });
   },
   setParam: (key, value) =>
@@ -40,13 +42,28 @@ export const useProbabilityStore = create<ProbabilityState>((set, get) => ({
   getProbability: () => {
     const { distributionType, params, lowerBound, upperBound, intervalMode } = get();
     const dist = DISTRIBUTIONS[distributionType] || normalDistribution;
-    if (intervalMode === 'left') {
-      return dist.cdf(upperBound, params);
-    } else if (intervalMode === 'right') {
-      return 1 - dist.cdf(lowerBound, params);
+    if (dist.isDiscrete) {
+      const a = Math.ceil(lowerBound);
+      const b = Math.floor(upperBound);
+      if (intervalMode === 'left') {
+        return Math.max(0, Math.min(1, dist.cdf(b, params)));
+      } else if (intervalMode === 'right') {
+        return Math.max(0, Math.min(1, 1 - dist.cdf(a - 1, params)));
+      }
+      // interval
+      if (b < a) return 0;
+      const p = dist.cdf(b, params) - dist.cdf(a - 1, params);
+      return Math.max(0, Math.min(1, p));
+    } else {
+      if (intervalMode === 'left') {
+        return Math.max(0, Math.min(1, dist.cdf(upperBound, params)));
+      } else if (intervalMode === 'right') {
+        return Math.max(0, Math.min(1, 1 - dist.cdf(lowerBound, params)));
+      }
+      // interval
+      if (upperBound < lowerBound) return 0;
+      const p = dist.cdf(upperBound, params) - dist.cdf(lowerBound, params);
+      return Math.max(0, Math.min(1, p));
     }
-    // interval
-    const p = dist.cdf(upperBound, params) - dist.cdf(lowerBound, params);
-    return Math.max(0, Math.min(1, p));
   },
 }));

@@ -8,8 +8,10 @@ import { useToolStore } from '../../store/useToolStore';
 import { useViewStore } from '../../store/useViewStore';
 import { useConstructionStore } from '../../store/useConstructionStore';
 import { TOOLS } from '../tools-panel/toolsConfig';
+import { TOOLS_3D } from '../tools-panel/tools3dConfig';
 import { ToolsPanel } from '../tools-panel/ToolsPanel';
 import { GraphicsView } from '../graphics-view/GraphicsView';
+import { GraphicsView3D } from '../graphics-view-3d/GraphicsView3D';
 import { CasRowList } from '../cas-view/CasRowList';
 import { AlgebraView } from '../algebra-view/AlgebraView';
 import { TableView } from '../table-view/TableView';
@@ -54,7 +56,7 @@ export const CalculatorShell: React.FC<CalculatorShellProps> = ({ appId = 'graph
       <div className="flex flex-1 overflow-hidden relative">
         <LeftIconRail appId={appId} />
 
-        {/* 1. App with Graphics Canvas (Graphing, Geometry & CAS) */}
+        {/* 1. App with Graphics Canvas (Graphing, Geometry, CAS & 3D Calculator) */}
         {config.hasCanvas && (
           <>
             {/* Flyout Sidebar Panel */}
@@ -83,8 +85,8 @@ export const CalculatorShell: React.FC<CalculatorShellProps> = ({ appId = 'graph
               </div>
             )}
 
-            {/* Main Graphics Canvas Area */}
-            <GraphicsView />
+            {/* Main Graphics Canvas Area: 3D or 2D Canvas */}
+            {config.canvasType === '3d' ? <GraphicsView3D /> : <GraphicsView />}
           </>
         )}
 
@@ -122,7 +124,7 @@ export const CalculatorShell: React.FC<CalculatorShellProps> = ({ appId = 'graph
 
 const BottomTooltip: React.FC = () => {
   const activeToolId = useToolStore((state) => state.activeToolId);
-  const activeTool = TOOLS.find((t) => t.id === activeToolId);
+  const activeTool = TOOLS.find((t) => t.id === activeToolId) || TOOLS_3D.find((t) => t.id === activeToolId);
   if (!activeTool || activeToolId === 'move') return null;
 
   return (

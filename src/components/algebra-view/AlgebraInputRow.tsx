@@ -14,13 +14,6 @@ export const AlgebraInputRow: React.FC<AlgebraInputRowProps> = ({ rowNumber }) =
   const toggleKeyboard = useActiveMathInputStore((s) => s.toggleKeyboard);
   const isKeyboardOpen = useActiveMathInputStore((s) => s.isKeyboardOpen);
 
-  const mathInput = useRegisterMathInput(
-    'algebra-input-row',
-    input,
-    setInput,
-    inputRef
-  );
-
   const handleSubmit = () => {
     if (!input.trim()) return;
     const trimmed = input.trim();
@@ -46,6 +39,14 @@ export const AlgebraInputRow: React.FC<AlgebraInputRowProps> = ({ rowNumber }) =
     });
     setInput('');
   };
+
+  const mathInput = useRegisterMathInput(
+    'algebra-input-row',
+    input,
+    setInput,
+    inputRef,
+    handleSubmit
+  );
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {

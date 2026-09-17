@@ -14,7 +14,31 @@ export type GeoObjectType =
   | 'text'
   | 'image'
   | 'measurement'
-  | 'slider';
+  | 'slider'
+  | 'plane'
+  | 'sphere'
+  | 'cube'
+  | 'tetrahedron'
+  | 'cone'
+  | 'cylinder'
+  | 'pyramid'
+  | 'prism'
+  | 'polyhedron'
+  | 'circular-arc'
+  | 'circular-sector'
+  | 'semicircle'
+  | 'circumcircular-arc'
+  | 'circumcircular-sector'
+  | 'arc'
+  | 'ellipse'
+  | 'hyperbola'
+  | 'parabola'
+  | 'surface-of-revolution'
+  | 'surface'
+  | 'distance'
+  | 'area'
+  | 'volume'
+  | 'conic-five-points';
 
 export interface ObjectStyle {
   color: string;
@@ -42,4 +66,40 @@ export interface Viewport {
   xMax: number;
   yMin: number;
   yMax: number;
+}
+
+export interface PointCoords3D {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface PlaneValue {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  normal?: PointCoords3D;
+  point?: PointCoords3D;
+}
+
+export interface SphereValue {
+  center: PointCoords3D;
+  radius: number;
+}
+
+export interface SolidValue {
+  type: 'cube' | 'tetrahedron' | 'sphere' | 'cone' | 'cylinder' | 'pyramid' | 'prism';
+  vertices?: PointCoords3D[];
+  faces?: number[][];
+  baseVertices?: PointCoords3D[];
+  apex?: PointCoords3D;
+  center?: PointCoords3D;
+  baseCenter?: PointCoords3D;
+  topCenter?: PointCoords3D;
+  radius?: number;
+  height?: number;
+  volume?: number;
+  p1?: PointCoords3D;
+  p2?: PointCoords3D;
 }

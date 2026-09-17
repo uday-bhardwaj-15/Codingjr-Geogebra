@@ -270,14 +270,14 @@ export const CanvasSurface: React.FC = () => {
 
             ctx.beginPath();
             ctx.ellipse(sCenter.x, sCenter.y, aScreen, bScreen, -circleVal.angle, 0, 2 * Math.PI);
-            ctx.strokeStyle = obj.style.color || '#4b5563';
-            ctx.lineWidth = obj.style.thickness || 2;
+            ctx.strokeStyle = obj.style?.color || '#4b5563';
+            ctx.lineWidth = obj.style?.thickness || 2;
             ctx.stroke();
 
             if (obj.labelVisible && obj.label) {
               renderSubscriptLabel(ctx, obj.label, sCenter.x + aScreen * 0.7 + 5, sCenter.y - bScreen * 0.7 - 5, {
                 isItalic: true,
-                color: obj.style.color || '#4b5563',
+                color: obj.style?.color || '#4b5563',
                 fontSize: 12,
               });
             }
@@ -300,15 +300,15 @@ export const CanvasSurface: React.FC = () => {
                 ctx.lineTo(sp.x, sp.y);
               }
             }
-            ctx.strokeStyle = obj.style.color || '#4b5563';
-            ctx.lineWidth = obj.style.thickness || 2;
+            ctx.strokeStyle = obj.style?.color || '#4b5563';
+            ctx.lineWidth = obj.style?.thickness || 2;
             ctx.stroke();
 
             if (obj.labelVisible && obj.label) {
               const sVertex = worldToScreen(vertex.x, vertex.y, w, h, viewport);
               renderSubscriptLabel(ctx, obj.label, sVertex.x + 8, sVertex.y - 8, {
                 isItalic: true,
-                color: obj.style.color || '#4b5563',
+                color: obj.style?.color || '#4b5563',
                 fontSize: 12,
               });
             }
@@ -333,8 +333,8 @@ export const CanvasSurface: React.FC = () => {
                 ctx.lineTo(sp.x, sp.y);
               }
             }
-            ctx.strokeStyle = obj.style.color || '#4b5563';
-            ctx.lineWidth = obj.style.thickness || 2;
+            ctx.strokeStyle = obj.style?.color || '#4b5563';
+            ctx.lineWidth = obj.style?.thickness || 2;
             ctx.stroke();
 
             // Left branch
@@ -353,15 +353,15 @@ export const CanvasSurface: React.FC = () => {
                 ctx.lineTo(sp.x, sp.y);
               }
             }
-            ctx.strokeStyle = obj.style.color || '#4b5563';
-            ctx.lineWidth = obj.style.thickness || 2;
+            ctx.strokeStyle = obj.style?.color || '#4b5563';
+            ctx.lineWidth = obj.style?.thickness || 2;
             ctx.stroke();
 
             if (obj.labelVisible && obj.label) {
               const sCenter = worldToScreen(center.x, center.y, w, h, viewport);
               renderSubscriptLabel(ctx, obj.label, sCenter.x + 8, sCenter.y - 8, {
                 isItalic: true,
-                color: obj.style.color || '#4b5563',
+                color: obj.style?.color || '#4b5563',
                 fontSize: 12,
               });
             }
@@ -379,29 +379,29 @@ export const CanvasSurface: React.FC = () => {
                 ctx.moveTo(sCenter.x, sCenter.y);
                 ctx.arc(sCenter.x, sCenter.y, pixelRadius, startScreen, endScreen, anticlockwise);
                 ctx.closePath();
-                ctx.fillStyle = obj.style.color ? `${obj.style.color}33` : 'rgba(21, 101, 239, 0.2)';
+                ctx.fillStyle = obj.style?.color ? `${obj.style.color}33` : 'rgba(21, 101, 239, 0.2)';
                 ctx.fill();
-                ctx.strokeStyle = obj.style.color || '#4b5563';
-                ctx.lineWidth = obj.style.thickness || 2;
+                ctx.strokeStyle = obj.style?.color || '#4b5563';
+                ctx.lineWidth = obj.style?.thickness || 2;
                 ctx.stroke();
               } else {
                 ctx.arc(sCenter.x, sCenter.y, pixelRadius, startScreen, endScreen, anticlockwise);
-                ctx.strokeStyle = obj.style.color || '#4b5563';
-                ctx.lineWidth = obj.style.thickness || 2;
+                ctx.strokeStyle = obj.style?.color || '#4b5563';
+                ctx.lineWidth = obj.style?.thickness || 2;
                 ctx.stroke();
               }
             } else {
               ctx.beginPath();
               ctx.arc(sCenter.x, sCenter.y, pixelRadius, 0, 2 * Math.PI);
-              ctx.strokeStyle = obj.style.color || '#4b5563';
-              ctx.lineWidth = obj.style.thickness || 2;
+              ctx.strokeStyle = obj.style?.color || '#4b5563';
+              ctx.lineWidth = obj.style?.thickness || 2;
               ctx.stroke();
             }
 
             if (obj.labelVisible && obj.label) {
               renderSubscriptLabel(ctx, obj.label, sCenter.x + pixelRadius * 0.7 + 5, sCenter.y - pixelRadius * 0.7 - 5, {
                 isItalic: true,
-                color: obj.style.color || '#4b5563',
+                color: obj.style?.color || '#4b5563',
                 fontSize: 12,
               });
             }
@@ -420,7 +420,7 @@ export const CanvasSurface: React.FC = () => {
               ctx.lineTo(screenPts[i].x, screenPts[i].y);
             }
             ctx.closePath();
-            ctx.fillStyle = obj.style.color ? `${obj.style.color}26` : 'rgba(21, 101, 239, 0.15)';
+            ctx.fillStyle = obj.style?.color ? `${obj.style.color}26` : 'rgba(21, 101, 239, 0.15)';
             ctx.fill();
 
             // Edges
@@ -431,8 +431,8 @@ export const CanvasSurface: React.FC = () => {
                 ctx.beginPath();
                 ctx.moveTo(s1.x, s1.y);
                 ctx.lineTo(s2.x, s2.y);
-                ctx.strokeStyle = obj.style.color || '#1565ef';
-                ctx.lineWidth = obj.style.thickness || 2;
+                ctx.strokeStyle = obj.style?.color || '#1565ef';
+                ctx.lineWidth = obj.style?.thickness || 2;
                 ctx.stroke();
 
                 const angle = Math.atan2(s2.y - s1.y, s2.x - s1.x);
@@ -442,7 +442,7 @@ export const CanvasSurface: React.FC = () => {
                 ctx.lineTo(s2.x - headLen * Math.cos(angle - Math.PI / 6), s2.y - headLen * Math.sin(angle - Math.PI / 6));
                 ctx.lineTo(s2.x - headLen * Math.cos(angle + Math.PI / 6), s2.y - headLen * Math.sin(angle + Math.PI / 6));
                 ctx.closePath();
-                ctx.fillStyle = obj.style.color || '#1565ef';
+                ctx.fillStyle = obj.style?.color || '#1565ef';
                 ctx.fill();
               }
             } else {
@@ -452,15 +452,15 @@ export const CanvasSurface: React.FC = () => {
                 ctx.lineTo(screenPts[i].x, screenPts[i].y);
               }
               ctx.closePath();
-              ctx.strokeStyle = obj.style.color || '#1565ef';
-              ctx.lineWidth = obj.style.thickness || 2;
+              ctx.strokeStyle = obj.style?.color || '#1565ef';
+              ctx.lineWidth = obj.style?.thickness || 2;
               ctx.stroke();
             }
 
             if (obj.labelVisible && obj.label) {
               const cx = screenPts.reduce((sum: number, p: any) => sum + p.x, 0) / screenPts.length;
               const cy = screenPts.reduce((sum: number, p: any) => sum + p.y, 0) / screenPts.length;
-              ctx.fillStyle = obj.style.color || '#1565ef';
+              ctx.fillStyle = obj.style?.color || '#1565ef';
               ctx.font = 'italic 12px Inter, sans-serif';
               ctx.fillText(obj.label, cx, cy);
             }
@@ -481,14 +481,14 @@ export const CanvasSurface: React.FC = () => {
               ctx.beginPath();
               ctx.moveTo(s1.x - (dx / len) * ext, s1.y - (dy / len) * ext);
               ctx.lineTo(s2.x + (dx / len) * ext, s2.y + (dy / len) * ext);
-              ctx.strokeStyle = obj.style.color || '#4b5563';
-              ctx.lineWidth = obj.style.thickness || 2;
+              ctx.strokeStyle = obj.style?.color || '#4b5563';
+              ctx.lineWidth = obj.style?.thickness || 2;
               ctx.stroke();
 
               if (obj.labelVisible && obj.label) {
                 renderSubscriptLabel(ctx, obj.label, (s1.x + s2.x) / 2 + 10, (s1.y + s2.y) / 2 - 10, {
                   isItalic: true,
-                  color: obj.style.color || '#4b5563',
+                  color: obj.style?.color || '#4b5563',
                   fontSize: 12,
                 });
               }
@@ -510,14 +510,14 @@ export const CanvasSurface: React.FC = () => {
               ctx.beginPath();
               ctx.moveTo(s1.x, s1.y);
               ctx.lineTo(s2.x, s2.y);
-              ctx.strokeStyle = obj.style.color || '#4b5563';
-              ctx.lineWidth = obj.style.thickness || 2;
+              ctx.strokeStyle = obj.style?.color || '#4b5563';
+              ctx.lineWidth = obj.style?.thickness || 2;
               ctx.stroke();
 
               if (obj.labelVisible && obj.label) {
                 renderSubscriptLabel(ctx, obj.label, (s1.x + s2.x) / 2 + 10, (s1.y + s2.y) / 2 - 10, {
                   isItalic: true,
-                  color: obj.style.color || '#4b5563',
+                  color: obj.style?.color || '#4b5563',
                   fontSize: 12,
                 });
               }
@@ -532,12 +532,12 @@ export const CanvasSurface: React.FC = () => {
             ctx.beginPath();
             ctx.moveTo(s1.x, s1.y);
             ctx.lineTo(s2.x, s2.y);
-            ctx.strokeStyle = obj.style.color || '#4b5563';
-            ctx.lineWidth = obj.style.thickness || 2.5;
+            ctx.strokeStyle = obj.style?.color || '#4b5563';
+            ctx.lineWidth = obj.style?.thickness || 2.5;
             ctx.stroke();
 
             if (obj.labelVisible && obj.label) {
-              ctx.fillStyle = obj.style.color || '#4b5563';
+              ctx.fillStyle = obj.style?.color || '#4b5563';
               ctx.font = 'italic 12px Inter, sans-serif';
               ctx.fillText(obj.label, (s1.x + s2.x) / 2 + 6, (s1.y + s2.y) / 2 - 6);
             }
@@ -548,8 +548,8 @@ export const CanvasSurface: React.FC = () => {
             const screenPoints = val.points.map((p: any) => worldToScreen(p.x, p.y, w, h, viewport));
             ctx.save();
             ctx.beginPath();
-            ctx.strokeStyle = obj.style.color || '#0f172a';
-            ctx.lineWidth = obj.style.thickness || 2.5;
+            ctx.strokeStyle = obj.style?.color || '#0f172a';
+            ctx.lineWidth = obj.style?.thickness || 2.5;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
@@ -583,8 +583,8 @@ export const CanvasSurface: React.FC = () => {
               ctx.beginPath();
               ctx.moveTo(s1.x, s1.y);
               ctx.lineTo(rayEnd.x, rayEnd.y);
-              ctx.strokeStyle = obj.style.color || '#4b5563';
-              ctx.lineWidth = obj.style.thickness || 2;
+              ctx.strokeStyle = obj.style?.color || '#4b5563';
+              ctx.lineWidth = obj.style?.thickness || 2;
               ctx.stroke();
             }
           }
@@ -597,8 +597,8 @@ export const CanvasSurface: React.FC = () => {
             ctx.beginPath();
             ctx.moveTo(s1.x, s1.y);
             ctx.lineTo(s2.x, s2.y);
-            ctx.strokeStyle = obj.style.color || '#1565ef';
-            ctx.lineWidth = obj.style.thickness || 2.5;
+            ctx.strokeStyle = obj.style?.color || '#1565ef';
+            ctx.lineWidth = obj.style?.thickness || 2.5;
             ctx.stroke();
 
             const angle = Math.atan2(s2.y - s1.y, s2.x - s1.x);
@@ -608,7 +608,7 @@ export const CanvasSurface: React.FC = () => {
             ctx.lineTo(s2.x - headLen * Math.cos(angle - Math.PI / 6), s2.y - headLen * Math.sin(angle - Math.PI / 6));
             ctx.lineTo(s2.x - headLen * Math.cos(angle + Math.PI / 6), s2.y - headLen * Math.sin(angle + Math.PI / 6));
             ctx.closePath();
-            ctx.fillStyle = obj.style.color || '#1565ef';
+            ctx.fillStyle = obj.style?.color || '#1565ef';
             ctx.fill();
           }
         } else if (obj.type === 'angle') {
@@ -661,7 +661,7 @@ export const CanvasSurface: React.FC = () => {
           const val = obj.value as any;
           if (val && typeof val.x === 'number') {
             const sPt = worldToScreen(val.x, val.y, w, h, viewport);
-            ctx.fillStyle = obj.style.color || '#1a1a1a';
+            ctx.fillStyle = obj.style?.color || '#1a1a1a';
             ctx.font = '14px Inter, sans-serif';
             ctx.fillText(val.text || 'Text', sPt.x, sPt.y);
           }
@@ -702,7 +702,7 @@ export const CanvasSurface: React.FC = () => {
 
           ctx.beginPath();
           ctx.arc(screenPt.x, screenPt.y, radius, 0, 2 * Math.PI);
-          ctx.fillStyle = obj.style.color || '#1565ef';
+          ctx.fillStyle = obj.style?.color || '#1565ef';
           ctx.fill();
 
           if (obj.labelVisible && obj.label) {
@@ -741,7 +741,7 @@ export const CanvasSurface: React.FC = () => {
             ctx.beginPath();
             ctx.moveTo(screenPt.x, screenPt.y);
             ctx.lineTo(thumbX, screenPt.y);
-            ctx.strokeStyle = obj.style.color || '#1565ef';
+            ctx.strokeStyle = obj.style?.color || '#1565ef';
             ctx.lineWidth = 5;
             ctx.lineCap = 'round';
             ctx.stroke();
@@ -753,7 +753,7 @@ export const CanvasSurface: React.FC = () => {
 
             ctx.beginPath();
             ctx.arc(thumbX, screenPt.y, 6, 0, 2 * Math.PI);
-            ctx.fillStyle = obj.style.color || '#1565ef';
+            ctx.fillStyle = obj.style?.color || '#1565ef';
             ctx.fill();
 
             if (obj.labelVisible) {

@@ -4,6 +4,7 @@ import React from 'react';
 import { useToolStore } from '../../store/useToolStore';
 import { useUIStore } from '../../store/useUIStore';
 import { COLLAPSED_CATEGORIES, ALL_TOOL_CATEGORIES, TOOLS } from './toolsConfig';
+import { CATEGORIES_3D, TOOLS_3D } from './tools3dConfig';
 import { ToolCategorySection } from './ToolCategorySection';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { AppId, APPS } from '../../config/appConfig';
@@ -19,11 +20,31 @@ export const ToolsPanel: React.FC<ToolsPanelProps> = ({ appId = 'graphing' }) =>
   const config = APPS[appId] || APPS.graphing;
 
   const isGeometry = appId === 'geometry' && config.geometryCategories;
+  const is3D = appId === '3d';
 
   return (
     <div className="w-72 h-full bg-white border-r border-[#e0e0e0] px-4 py-4 overflow-y-auto flex flex-col justify-between select-none">
       <div>
-        {isGeometry && config.geometryCategories ? (
+        {is3D ? (
+          // 3D Custom Category Layout
+          (toolsExpanded ? CATEGORIES_3D.expanded : CATEGORIES_3D.collapsed).map((cat) => {
+            const categoryTools = cat.toolIds
+              .map((id) => TOOLS_3D.find((t) => t.id === id))
+              .filter((t): t is ToolDefinition => !!t);
+
+            if (categoryTools.length === 0) return null;
+
+            return (
+              <ToolCategorySection
+                key={cat.id}
+                label={cat.label}
+                tools={categoryTools}
+                activeToolId={activeToolId}
+                onSelectTool={setActiveToolId}
+              />
+            );
+          })
+        ) : isGeometry && config.geometryCategories ? (
           // Geometry Custom Category Layout
           (toolsExpanded
             ? config.geometryCategories.expanded

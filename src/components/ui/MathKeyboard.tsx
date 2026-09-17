@@ -8,7 +8,7 @@ import { clsx } from 'clsx';
 type TabKey = '123' | 'fx' | 'abc' | 'symbols';
 
 export const MathKeyboard: React.FC = () => {
-  const { isKeyboardOpen, setKeyboardOpen, insertToken, handleBackspace } = useActiveMathInputStore();
+  const { isKeyboardOpen, setKeyboardOpen, insertToken, handleBackspace, handleSubmit } = useActiveMathInputStore();
   const [activeTab, setActiveTab] = useState<TabKey>('123');
 
   if (!isKeyboardOpen) return null;
@@ -26,6 +26,22 @@ export const MathKeyboard: React.FC = () => {
       )}
     >
       {label}
+    </button>
+  );
+
+  const renderEnterKey = (className?: string) => (
+    <button
+      onMouseDown={(e) => {
+        e.preventDefault();
+        handleSubmit();
+      }}
+      className={clsx(
+        'h-10 sm:h-11 rounded-md bg-[#6557d2] text-white hover:bg-[#5345c2] active:bg-[#473aa8] border border-[#5345c2] shadow-2xs transition-colors font-medium text-sm flex items-center justify-center cursor-pointer select-none',
+        className
+      )}
+      title="Enter / Evaluate"
+    >
+      <CornerDownLeft className="w-4 h-4" />
     </button>
   );
 
@@ -142,16 +158,7 @@ export const MathKeyboard: React.FC = () => {
             {renderKey(':', ':')}
             {renderKey('0', '0', 'col-span-2')}
             {renderKey('.', '.')}
-            <button
-              onMouseDown={(e) => {
-                e.preventDefault();
-                insertToken('\n');
-              }}
-              className="col-span-2 h-10 sm:h-11 rounded-md bg-[#6557d2] text-white hover:bg-[#5345c2] active:bg-[#473aa8] border border-[#5345c2] shadow-2xs transition-colors font-medium text-sm flex items-center justify-center cursor-pointer select-none"
-              title="Enter"
-            >
-              <CornerDownLeft className="w-4 h-4" />
-            </button>
+            {renderEnterKey('col-span-2')}
           </div>
         )}
 
@@ -182,8 +189,16 @@ export const MathKeyboard: React.FC = () => {
             {renderKey('nPr', 'permutations(')}
             {renderKey('mean', 'mean(')}
             {renderKey('stdDev', 'std(')}
-            {renderKey('min', 'min(')}
-            {renderKey('max', 'max(')}
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleBackspace();
+              }}
+              className="h-10 sm:h-11 rounded-md bg-[#e8eaed] border border-[#dadce0] shadow-2xs hover:bg-[#dadce0] active:bg-[#bdc1c6] transition-colors font-medium text-sm text-[#202124] flex items-center justify-center cursor-pointer select-none"
+            >
+              <Delete className="w-4 h-4" />
+            </button>
+            {renderEnterKey()}
           </div>
         )}
 
@@ -199,7 +214,7 @@ export const MathKeyboard: React.FC = () => {
                 renderKey(k, k)
               )}
             </div>
-            <div className="grid grid-cols-9 gap-1.5 px-6">
+            <div className="grid grid-cols-10 gap-1.5 px-2">
               {['z', 'x', 'c', 'v', 'b', 'n', 'm'].map((k) => renderKey(k, k))}
               {renderKey(',', ',')}
               <button
@@ -211,12 +226,12 @@ export const MathKeyboard: React.FC = () => {
               >
                 <Delete className="w-4 h-4" />
               </button>
+              {renderEnterKey()}
             </div>
           </div>
         )}
 
         {activeTab === 'symbols' && (
-          /* Intentional MVP cut: reduced set of comparison and symbol keys (#&¬) */
           <div className="grid grid-cols-6 gap-1.5">
             {renderKey('<', '<')}
             {renderKey('>', '>')}
@@ -243,8 +258,16 @@ export const MathKeyboard: React.FC = () => {
             {renderKey(';', ';')}
             {renderKey(',', ',')}
             {renderKey('?', '?')}
-            {renderKey('_', '_')}
-            {renderKey('"', '"')}
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleBackspace();
+              }}
+              className="h-10 sm:h-11 rounded-md bg-[#e8eaed] border border-[#dadce0] shadow-2xs hover:bg-[#dadce0] active:bg-[#bdc1c6] transition-colors font-medium text-sm text-[#202124] flex items-center justify-center cursor-pointer select-none"
+            >
+              <Delete className="w-4 h-4" />
+            </button>
+            {renderEnterKey()}
           </div>
         )}
       </div>

@@ -29,11 +29,25 @@ export const CasRow: React.FC<CasRowProps> = ({ row, index }) => {
     setInputText(row.input);
   }, [row.input]);
 
+  const handleCommit = () => {
+    updateRow(row.id, inputText);
+  };
+
+  const handleCommitAndNext = () => {
+    updateRow(row.id, inputText);
+    const rows = useCasStore.getState().rows;
+    const isLast = rows[rows.length - 1]?.id === row.id;
+    if (isLast && inputText.trim().length > 0) {
+      useCasStore.getState().addRow();
+    }
+  };
+
   const mathInput = useRegisterMathInput(
     `cas-row-${row.id}`,
     inputText,
     setInputText,
-    inputRef
+    inputRef,
+    handleCommitAndNext
   );
 
   useEffect(() => {
@@ -46,14 +60,10 @@ export const CasRow: React.FC<CasRowProps> = ({ row, index }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleCommit = () => {
-    updateRow(row.id, inputText);
-  };
-
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleCommit();
+      handleCommitAndNext();
     }
   };
 

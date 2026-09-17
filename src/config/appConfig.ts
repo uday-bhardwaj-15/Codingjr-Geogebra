@@ -1,4 +1,4 @@
-export type AppId = 'graphing' | 'geometry' | 'probability' | 'scientific' | 'cas';
+export type AppId = 'graphing' | 'geometry' | 'probability' | 'scientific' | 'cas' | '3d';
 
 export interface GeometryCategoryGroup {
   id: string;
@@ -12,6 +12,7 @@ export interface AppConfig {
   icon: string;
   route: string;
   hasCanvas: boolean;
+  canvasType?: '2d' | '3d';
   hasToolsPanel: boolean;
   leftRailTabs: Array<'algebra' | 'tools' | 'table' | 'spreadsheet' | 'distribution'>;
   algebraVariant?: 'sidebar' | 'fullpage' | 'cas';
@@ -52,6 +53,11 @@ export const GEOMETRY_CATEGORIES = {
       toolIds: ['angle', 'distance-length', 'area'],
     },
     {
+      id: 'points',
+      label: 'Points',
+      toolIds: ['point', 'intersect', 'point-on-object'],
+    },
+    {
       id: 'lines',
       label: 'Lines',
       toolIds: ['segment', 'ray', 'vector', 'line'],
@@ -60,6 +66,31 @@ export const GEOMETRY_CATEGORIES = {
       id: 'circles',
       label: 'Circles',
       toolIds: ['circle-center-point', 'compass', 'semicircle'],
+    },
+    {
+      id: 'polygons',
+      label: 'Polygons',
+      toolIds: ['polygon', 'regular-polygon'],
+    },
+    {
+      id: 'conics',
+      label: 'Conics',
+      toolIds: ['ellipse', 'parabola'],
+    },
+    {
+      id: 'transform',
+      label: 'Transform',
+      toolIds: ['translate-vector', 'reflect-line', 'reflect-point'],
+    },
+    {
+      id: 'media',
+      label: 'Media',
+      toolIds: ['slider', 'image', 'text'],
+    },
+    {
+      id: 'others',
+      label: 'Others',
+      toolIds: ['pen', 'freehand-shape'],
     },
   ],
   expanded: [
@@ -71,7 +102,14 @@ export const GEOMETRY_CATEGORIES = {
     {
       id: 'edit',
       label: 'Edit',
-      toolIds: ['select-objects', 'show-hide-label', 'show-hide-object', 'delete'],
+      toolIds: [
+        'select-objects',
+        'show-hide-label',
+        'show-hide-object',
+        'delete',
+        'move-graphics-view',
+        'copy-visual-style',
+      ],
     },
     {
       id: 'construct',
@@ -83,52 +121,89 @@ export const GEOMETRY_CATEGORIES = {
         'parallel-line',
         'angle-bisector',
         'tangents',
+        'locus',
       ],
     },
     {
       id: 'measure',
       label: 'Measure',
-      toolIds: ['angle', 'angle-given-size', 'distance-length', 'area'],
+      toolIds: ['angle', 'angle-given-size', 'distance-length', 'area', 'slope'],
+    },
+    {
+      id: 'points',
+      label: 'Points',
+      toolIds: [
+        'point',
+        'intersect',
+        'point-on-object',
+        'attach-detach-point',
+        'extremum',
+        'roots',
+        'complex-number',
+        'list',
+      ],
     },
     {
       id: 'lines',
       label: 'Lines',
-      toolIds: ['segment', 'segment-given-length', 'ray', 'vector', 'line'],
+      toolIds: [
+        'segment',
+        'segment-given-length',
+        'line',
+        'ray',
+        'vector',
+        'vector-from-point',
+        'polar-diameter-line',
+        'polyline',
+        'best-fit-line',
+      ],
     },
     {
       id: 'circles',
       label: 'Circles',
       toolIds: [
         'circle-center-point',
+        'circle-center-radius',
         'compass',
         'semicircle',
-        'circle-center-radius',
-        'circular-arc',
-        'circumcircular-arc',
         'circular-sector',
+        'circular-arc',
+        'circle-three-points',
         'circumcircular-sector',
+        'circumcircular-arc',
       ],
     },
     {
       id: 'polygons',
       label: 'Polygons',
-      toolIds: ['polygon', 'regular-polygon'],
+      toolIds: ['polygon', 'regular-polygon', 'vector-polygon', 'rigid-polygon'],
+    },
+    {
+      id: 'conics',
+      label: 'Conics',
+      toolIds: ['ellipse', 'conic-five-points', 'parabola', 'hyperbola'],
     },
     {
       id: 'transform',
       label: 'Transform',
       toolIds: [
-        'reflect-line',
-        'reflect-point',
         'translate-vector',
         'rotate-around-point',
+        'reflect-line',
+        'reflect-point',
         'dilate-from-point',
+        'reflect-about-circle',
       ],
     },
     {
       id: 'media',
       label: 'Media',
-      toolIds: ['image', 'text'],
+      toolIds: ['slider', 'image', 'text'],
+    },
+    {
+      id: 'others',
+      label: 'Others',
+      toolIds: ['pen', 'freehand-shape', 'relation', 'button', 'check-box', 'input-box'],
     },
   ],
 };
@@ -185,6 +260,18 @@ export const APPS: Record<AppId, AppConfig> = {
     hasToolsPanel: false,
     leftRailTabs: ['algebra', 'table', 'spreadsheet'],
     algebraVariant: 'cas',
+    defaultAxesVisible: true,
+  },
+  '3d': {
+    id: '3d',
+    label: '3D Calculator',
+    icon: '3d',
+    route: '/3d',
+    hasCanvas: true,
+    canvasType: '3d',
+    hasToolsPanel: true,
+    leftRailTabs: ['algebra', 'tools', 'table'],
+    algebraVariant: 'sidebar',
     defaultAxesVisible: true,
   },
 };
